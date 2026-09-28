@@ -1,0 +1,40 @@
+-- ============================================================================
+--  DO NOT RUN THIS FILE.
+-- ============================================================================
+--
+--  This file is retired. The authoritative schema lives in:
+--
+--      supabase/migrations/0001_init.sql
+--
+--  Apply it with the Supabase CLI, never by pasting SQL into the dashboard:
+--
+--      supabase link --project-ref <your-project-ref>
+--      supabase db push
+--
+--  Why this file was retired
+--  -----------------------
+--  The version that used to live here was not safe to run. It granted
+--  `profiles_select` USING (true) and allowed `group_members_insert_self` with
+--  `user_id = auth.uid()`. Either one alone hands over the whole product:
+--
+--    * `profiles_select ... using (true)` let ANY signed-in user read every
+--      row of `public.profiles` -- i.e. every other user's invite code, and
+--      therefore the ability to join any group in the database.
+--
+--    * `group_members_insert_self ... user_id = auth.uid()` let any user
+--      insert themselves into ANY group, so share links were decorative and
+--      membership meant nothing.
+--
+--  On top of that, the three access-control helpers (`is_member`, `is_admin`,
+--  `can_edit`) were SECURITY DEFINER without a pinned `search_path`, and the
+--  `anon` role still had table privileges.
+--
+--  `migrations/0001_init.sql` fixes all of the above: self-only profile reads,
+--  admin-only membership writes, `SET search_path = public, pg_temp` on every
+--  definer function, `anon` revoked from every table, and a `group_invites`
+--  table with expiry / use caps / revocation so share links are revocable
+--  secrets rather than permanent group UUIDs.
+--
+--  tests/smoke.test.mjs asserts these properties, so a regression here fails CI
+--  rather than shipping.
+-- ============================================================================

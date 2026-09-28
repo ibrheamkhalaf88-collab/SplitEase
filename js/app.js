@@ -91,6 +91,7 @@ try {
     supabaseClient = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
   }
 } catch(e) { /* Supabase not configured — local mode only */ }
+if (supabaseClient) window.supabaseClient = supabaseClient;   // shared with cloud.js
 
 /* ── Auth ── */
 const authState = { user: null, session: null, initialized: false };
@@ -105,6 +106,9 @@ async function initAuth() {
   supabaseClient.auth.onAuthStateChange((event, session) => {
     authState.session = session;
     authState.user = session?.user || null;
+    if (window.Cloud && window.Cloud.enabled && typeof Cloud.setUser === 'function') {
+      Cloud.setUser(authState.user);
+    }
     if (event === 'SIGNED_IN') { toast('تم تسجيل الدخول', 'success'); handleRoute(); }
     if (event === 'SIGNED_OUT') { handleRoute(); }
   });
@@ -127,15 +131,15 @@ function renderAuthPage(mode) {
         <div class="auth-form">
           ${mode === 'register' ? `
           <div class="form-group">
-            <label class="form-label">الاسم</label>
+            <label class="form-label" for="authName">الاسم</label>
             <input class="form-input" id="authName" placeholder="اسمك">
           </div>` : ''}
           <div class="form-group">
-            <label class="form-label">البريد الإلكتروني</label>
+            <label class="form-label" for="authEmail">البريد الإلكتروني</label>
             <input class="form-input" id="authEmail" type="email" placeholder="your@email.com" dir="ltr">
           </div>
           <div class="form-group">
-            <label class="form-label">كلمة المرور</label>
+            <label class="form-label" for="authPassword">كلمة المرور</label>
             <input class="form-input" id="authPassword" type="password" placeholder="●●●●●●" dir="ltr">
           </div>
           <div id="authError" style="color:#EF4444;font-size:13px;margin-bottom:8px;display:none"></div>
@@ -534,7 +538,7 @@ async function renderDashboard() {
       <div class="card-header"><h2>الملخص</h2></div>
       <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">
         <div style="background:var(--border-light);border-radius:var(--radius-md);padding:12px;text-align:center">
-          <div style="color:var(--primary);font-size:11px">دخل الميزانية</div>
+          <div style="color:var(--primary-text);font-size:11px">دخل الميزانية</div>
           <div style="font-size:22px;font-weight:700;direction:ltr;margin-top:4px">${fmt(totalIncome)}</div>
         </div>
         <div style="background:var(--border-light);border-radius:var(--radius-md);padding:12px;text-align:center">
@@ -711,7 +715,7 @@ async function renderPersonal() {
             <div style="font-size:11px;color:var(--text-muted)">${t.date||''} · ${(PERSONAL_CATS[t.category]||PERSONAL_CATS.other).label}</div>
           </div>
           <div class="bi-amt" style="color:var(--negative)">${fmt(t.amount)}</div>
-          <button class="btn btn-ghost bi-del" onclick="deletePersonal('${t.id}')">✕</button>
+          <button class="btn btn-ghost bi-del" aria-label="حذف" onclick="deletePersonal('${t.id}')">✕</button>
         </div>
       `).join('')}
     </div>
@@ -728,22 +732,22 @@ function selectPersonalCat(id) {
 function showAddPersonal() {
   showModal('إضافة مصروف شخصي', `
     <div class="form-group">
-      <label class="form-label">الوصف</label>
+      <label class="form-label" for="pDesc">الوصف</label>
       <input class="form-input" id="pDesc" placeholder="مثال: غداء">
     </div>
     <div class="form-row">
       <div class="form-group">
-        <label class="form-label">المبلغ</label>
+        <label class="form-label" for="pAmt">المبلغ</label>
         <input class="form-input" id="pAmt" type="number" step="0.01" min="0" placeholder="0.00">
       </div>
       <div class="form-group">
-        <label class="form-label">التاريخ</label>
+        <label class="form-label" for="pDate">التاريخ</label>
         <input class="form-input" id="pDate" type="date" value="${today()}">
       </div>
     </div>
     <div class="form-group">
-      <label class="form-label">التصنيف</label>
-      <div style="display:flex;flex-wrap:wrap;gap:6px">
+      <label class="form-label" id="lbl-group-1">التصنيف</label>
+      <div style="display:flex;flex-wrap:wrap;gap:6px" role="group" aria-labelledby="lbl-group-1">
         ${Object.entries(PERSONAL_CATS).map(([id, c]) => `<button class="cat-btn ${id === 'food' ? 'active' : ''}" data-pcat="${id}" onclick="selectPersonalCat('${id}')">${c.icon} ${c.label}</button>`).join('')}
       </div>
     </div>
@@ -825,34 +829,34 @@ async function showCreateGroup(groupId) {
   const isEdit = !!editGroup;
   showModal(isEdit ? t('edit') + ' ' + t('group_name') : t('create_group'), `
     <div class="form-group">
-      <label class="form-label">${t('group_name')}</label>
+      <label class="form-label" for="gName">${t('group_name')}</label>
       <input class="form-input" id="gName" value="${isEdit ? esc(editGroup.name) : ''}" placeholder="مثال: شقة الطلاب">
     </div>
     <div class="form-group">
-      <label class="form-label">${t('group_icon')}</label>
-      <div class="icon-options">
+      <label class="form-label" id="lbl-group-2">${t('group_icon')}</label>
+      <div class="icon-options" role="group" aria-labelledby="lbl-group-2">
         ${GROUP_ICONS.map(ic => `
           <button class="icon-option ${isEdit && editGroup.icon === ic ? 'active' : ''}" data-icon="${ic}" onclick="document.querySelectorAll('.icon-option').forEach(x=>x.classList.remove('active'));this.classList.add('active')">${ic}</button>
         `).join('')}
       </div>
     </div>
     <div class="form-group">
-      <label class="form-label">${t('color') || 'اللون'}</label>
-      <div class="color-options">
+      <label class="form-label" id="lbl-group-3">${t('color') || 'اللون'}</label>
+      <div class="color-options" role="group" aria-labelledby="lbl-group-3">
         ${GROUP_COLORS.map(c => `
           <button class="color-option ${isEdit && editGroup.color === c ? 'active' : ''}" data-color="${c}" style="background:${c}" onclick="document.querySelectorAll('.color-option').forEach(x=>x.classList.remove('active'));this.classList.add('active')"></button>
         `).join('')}
       </div>
     </div>
     <div class="form-group">
-      <label class="form-label">${t('currency')}</label>
+      <label class="form-label" for="gCurrency">${t('currency')}</label>
       <select class="form-select" id="gCurrency">
         ${CURRENCIES.map(c => `<option value="${c}" ${isEdit && editGroup.currency === c ? 'selected' : c === state.currency ? 'selected' : ''}>${c}</option>`).join('')}
       </select>
     </div>
     <div class="form-group">
-      <label class="form-label">${t('add_members')}</label>
-      <div class="form-row" style="margin-bottom:8px">
+      <label class="form-label" id="lbl-group-4">${t('add_members')}</label>
+      <div class="form-row" style="margin-bottom:8px" role="group" aria-labelledby="lbl-group-4">
         <input class="form-input" id="newMemberName" placeholder="${t('member_name')}">
         <button class="btn btn-primary" onclick="addMemberToList()">${t('add')}</button>
       </div>
@@ -1144,17 +1148,17 @@ async function showAddExpense(groupId) {
 
   showModal(t('add_expense'), `
     <div class="form-group">
-      <label class="form-label">${t('expense_desc')}</label>
+      <label class="form-label" for="eDesc">${t('expense_desc')}</label>
       <input class="form-input" id="eDesc" placeholder="مثال: عشاء">
     </div>
     <div class="form-row">
       <div class="form-group">
-        <label class="form-label">${t('amount')}</label>
+        <label class="form-label" for="eAmount">${t('amount')}</label>
         <input class="form-input" id="eAmount" type="number" step="0.01" min="0" placeholder="0.00">
       </div>
       <div class="form-group">
-        <label class="form-label">${t('category')}</label>
-        <div class="split-types" style="grid-template-columns:repeat(4,1fr)">
+        <label class="form-label" id="lbl-group-5">${t('category')}</label>
+        <div class="split-types" style="grid-template-columns:repeat(4,1fr)" role="group" aria-labelledby="lbl-group-5">
           ${CATEGORIES.map(c => `
             <button type="button" class="split-type-btn cat-btn" data-cat="${c.id}" style="font-size:11px;padding:8px 4px" onclick="selectCategory('${c.id}')">
               <span style="font-size:20px;display:block">${c.icon}</span>
@@ -1166,12 +1170,12 @@ async function showAddExpense(groupId) {
       </div>
     </div>
     <div class="form-group">
-      <label class="form-label">${t('date')}</label>
+      <label class="form-label" for="eDate">${t('date')}</label>
       <input class="form-input" id="eDate" type="date" value="${today()}">
     </div>
     <div class="form-group">
-      <label class="form-label">من دفع؟ (يمكن اختيار أكثر من واحد)</label>
-      <div id="payersContainer">
+      <label class="form-label" id="lbl-group-6">من دفع؟ (يمكن اختيار أكثر من واحد)</label>
+      <div id="payersContainer" role="group" aria-labelledby="lbl-group-6">
         ${members.map(m => `
           <div class="member-split-item">
             <span class="member-name">${esc(m.name)}</span>
@@ -1185,8 +1189,8 @@ async function showAddExpense(groupId) {
       </div>
     </div>
     <div class="form-group">
-      <label class="form-label">${t('split_type')}</label>
-      <div class="split-types">
+      <label class="form-label" id="lbl-group-7">${t('split_type')}</label>
+      <div class="split-types" role="group" aria-labelledby="lbl-group-7">
         <button class="split-type-btn active" data-split="equal" onclick="selectSplit('equal')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><line x1="5" y1="12" x2="19" y2="12"/></svg>
           ${t('split_equal')}
@@ -1382,23 +1386,23 @@ function showSettleModal(groupId) {
       const members = group.members || [];
       showModal(t('settle'), `
         <div class="form-group">
-          <label class="form-label">${t('paid_by')}</label>
+          <label class="form-label" for="sFrom">${t('paid_by')}</label>
           <select class="form-select" id="sFrom">
             ${members.map(m => `<option value="${m.id}">${esc(m.name)}</option>`).join('')}
           </select>
         </div>
         <div class="form-group">
-          <label class="form-label">${t('owes')}</label>
+          <label class="form-label" for="sTo">${t('owes')}</label>
           <select class="form-select" id="sTo">
             ${members.filter(m => (balances[m.id] || 0) > 0.01).map(m => `<option value="${m.id}">${esc(m.name)} (${fmt(balances[m.id], group.currency)})</option>`).join('')}
           </select>
         </div>
         <div class="form-group">
-          <label class="form-label">${t('amount')}</label>
+          <label class="form-label" for="sAmount">${t('amount')}</label>
           <input class="form-input" id="sAmount" type="number" step="0.01" min="0" placeholder="0.00">
         </div>
         <div class="form-group">
-          <label class="form-label">طريقة الدفع</label>
+          <label class="form-label" for="sMethod">طريقة الدفع</label>
           <select class="form-select" id="sMethod">
             <option value="cash">نقداً</option>
             <option value="bank">تحويل بنكي</option>
@@ -1513,7 +1517,7 @@ function renderSettings() {
             <p>${state.theme === 'dark' ? 'تفعيل الوضع النهاري' : 'تفعيل الوضع الليلي'}</p>
           </div>
         </div>
-        <div class="toggle ${state.theme === 'dark' ? 'active' : ''}" onclick="toggleTheme()"><div class="toggle-knob"></div></div>
+        <div class="toggle ${state.theme === 'dark' ? 'active' : ''}" role="switch" tabindex="0" onclick="toggleTheme()" onkeydown="if(event.key===' '||event.key==='Enter'){event.preventDefault();toggleTheme();}"><div class="toggle-knob"></div></div>
       </div>
       <div class="settings-item">
         <div class="settings-item-left">
@@ -1523,7 +1527,7 @@ function renderSettings() {
             <p>تباين عالي للرؤية الواضحة</p>
           </div>
         </div>
-        <div class="toggle ${state.theme === 'high-contrast' ? 'active' : ''}" onclick="toggleHighContrast()"><div class="toggle-knob"></div></div>
+        <div class="toggle ${state.theme === 'high-contrast' ? 'active' : ''}" role="switch" tabindex="0" onclick="toggleHighContrast()" onkeydown="if(event.key===' '||event.key==='Enter'){event.preventDefault();toggleHighContrast();}"><div class="toggle-knob"></div></div>
       </div>
     </div>
     <div class="settings-group">
@@ -1575,6 +1579,7 @@ function renderSettings() {
       </div>
     </div>
   `;
+  syncSwitchStates();
 }
 
 /* ── Theme ── */
@@ -1585,6 +1590,7 @@ function toggleTheme() {
   const el = document.querySelector('.toggle');
   if (el) el.classList.toggle('active');
   renderSettings();
+  syncSwitchStates();
 }
 
 function toggleHighContrast() {
@@ -1592,6 +1598,17 @@ function toggleHighContrast() {
   localStorage.setItem('splitease-theme', state.theme);
   applyTheme(state.theme);
   renderSettings();
+  syncSwitchStates();
+}
+
+/* The switches carry role="switch" but no static aria-checked, because the
+   "active" class is produced by a template expression that reads the same way
+   whether or not the theme is currently on. Derive the state from the DOM
+   instead, after every render. */
+function syncSwitchStates() {
+  document.querySelectorAll('.toggle[role="switch"]').forEach((el) => {
+    el.setAttribute('aria-checked', el.classList.contains('active') ? 'true' : 'false');
+  });
 }
 
 function applyTheme(theme) {
@@ -1625,27 +1642,45 @@ function navigate(page) {
 
 async function handleRoute() {
   const hash = location.hash.slice(1) || 'home';
+
+  // Invite deep link: <app>#join=CODE. Consume it before routing, otherwise
+  // "join" is treated as a page name and the recipient lands on the dashboard.
+  if (hash.startsWith('join=')) {
+    const inviteCode = decodeURIComponent(hash.slice(5).split('&')[0]);
+    history.replaceState(null, '', '#cloud');
+    if (window.CloudUI && window.Cloud.enabled) { CloudUI.acceptInvite(inviteCode); return; }
+  }
+
   const parts = hash.split('/');
   const page = parts[0];
   state.currentPage = page;
+  const isActive = (el) => el.dataset.page === page
+    || (page === 'group' && el.dataset.page === 'groups')
+    || (page === 'cloudgroup' && el.dataset.page === 'cloud');
 
   document.querySelectorAll('.nav-item, .bottom-nav-item').forEach(el => {
-    el.classList.toggle('active', el.dataset.page === page || (page === 'group' && el.dataset.page === 'groups'));
+    const active = isActive(el);
+    el.classList.toggle('active', active);
+    /* Mirror the visual state for assistive tech, so the two navs can no
+       longer disagree about which page is current. */
+    if (active) el.setAttribute('aria-current', 'page');
+    else el.removeAttribute('aria-current');
   });
 
   const fab = document.getElementById('fab');
-  if (!fab) return;
-  if (page === 'group' && parts[1]) {
-    fab.style.display = 'flex';
-  } else if (page === 'home' || page === 'groups' || page === 'personal' || page === 'budget') {
-    fab.style.display = 'flex';
-  } else {
-    fab.style.display = 'none';
+  if (fab) {
+    const showFab = page === 'group' || ['home', 'groups', 'personal', 'budget'].includes(page);
+    fab.classList.toggle('is-hidden', !showFab);
   }
 
   if (supabaseClient && !authState.user && !['login','register'].includes(page)) {
     if (page === 'home') { renderAuthPage('login'); return; }
     document.getElementById('appContent').innerHTML = `<div style="text-align:center;padding:80px 20px"><h2>الرجاء تسجيل الدخول</h2><button class="btn btn-primary" style="margin-top:16px" onclick="navigate('login')">تسجيل الدخول</button></div>`;
+    return;
+  }
+  if (page === 'cloud' || page === 'cloudgroup') {
+    if (window.CloudUI) { await CloudUI.route(parts); return; }
+    document.getElementById('appContent').innerHTML = `<div style="text-align:center;padding:60px 20px"><h2>السحابة غير مهيأة</h2><p style="color:var(--text-muted);margin-top:8px">املا <code>js/supabase-config.js</code> بمشروع Supabase بتاعك.</p></div>`;
     return;
   }
   switch (page) {
@@ -1658,9 +1693,24 @@ async function handleRoute() {
     case 'settings': renderSettings(); break;
     case 'login': renderAuthPage('login'); break;
     case 'register': renderAuthPage('register'); break;
+    case 'add': {
+      // PWA shortcut target (manifest.json "مصروف جديد"). An expense belongs to
+      // a group, so reuse the group we are already in; otherwise send the user
+      // somewhere the choice can be made instead of dead-ending on the router.
+      const gid = state.currentGroupId;
+      history.replaceState(null, '', gid ? '#group/' + gid : '#groups');
+      if (gid) { await renderGroupPage(gid); showAddExpense(gid); }
+      else { renderGroups(); toast('افتح شلة الأول عشان تضيف مصروف', 'info'); }
+      break;
+    }
     default: await renderDashboard();
   }
   updateBadge();
+  /* A hash swap replaces the whole page body, leaving a screen-reader or
+     keyboard user stranded. Move focus to the new view. */
+  const main = document.getElementById('mainContent');
+  if (main) main.focus({ preventScroll: true });
+  window.scrollTo(0, 0);
 }
 
 function updateBadge() {
@@ -1672,43 +1722,88 @@ function updateBadge() {
   }
 }
 
-/* ── Modal ── */
+/* ── Modal ──
+   Previously: no focus handling, no Escape, no scroll lock, and the
+   `modal-lg` class was only ever added — so once a "large" dialog had been
+   opened, every later dialog stayed 760px wide. */
+const FOCUSABLE = 'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
+let modalReturnFocus = null;
+
 function showModal(title, body, large) {
+  modalReturnFocus = document.activeElement;
   document.getElementById('modalTitle').textContent = title;
   document.getElementById('modalBody').innerHTML = body;
-  document.getElementById('modalOverlay').classList.add('open');
-  if (large) document.querySelector('.modal')?.classList.add('modal-lg');
+  const overlay = document.getElementById('modalOverlay');
+  const dialog = document.getElementById('modalContent');
+  overlay.classList.add('open');
+  dialog.classList.toggle('modal-lg', Boolean(large));
+  document.body.classList.add('modal-open');
+  document.getElementById('appContent').setAttribute('inert', '');
+  document.getElementById('appContent').setAttribute('aria-hidden', 'true');
+
+  /* Prefer the first real control so screen readers land on the form, not on
+     the dialog wrapper. */
+  const first = dialog.querySelector(FOCUSABLE);
+  (first || dialog).focus({ preventScroll: true });
+  if (first) first.scrollIntoView({ block: 'nearest' });
 }
 
 function closeModal() {
-  document.getElementById('modalOverlay').classList.remove('open');
+  const overlay = document.getElementById('modalOverlay');
+  if (!overlay.classList.contains('open')) return;
+  overlay.classList.remove('open');
+  document.getElementById('modalContent').classList.remove('modal-lg');
+  document.body.classList.remove('modal-open');
+  const content = document.getElementById('appContent');
+  content.removeAttribute('inert');
+  content.removeAttribute('aria-hidden');
+  if (modalReturnFocus && document.contains(modalReturnFocus)) {
+    modalReturnFocus.focus({ preventScroll: true });
+  }
+  modalReturnFocus = null;
 }
+
+/* Keep Tab inside the dialog and let Escape dismiss it. */
+document.addEventListener('keydown', (e) => {
+  const overlay = document.getElementById('modalOverlay');
+  if (!overlay || !overlay.classList.contains('open')) return;
+  if (e.key === 'Escape') { e.preventDefault(); closeModal(); return; }
+  if (e.key !== 'Tab') return;
+  const dialog = document.getElementById('modalContent');
+  const items = [...dialog.querySelectorAll(FOCUSABLE)].filter((el) => el.offsetParent !== null);
+  if (!items.length) return;
+  const first = items[0];
+  const last = items[items.length - 1];
+  if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+  else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+});
 
 /* ── Toast ── */
 function toast(msg, type) {
   const container = document.getElementById('toastContainer');
   const el = document.createElement('div');
   el.className = 'toast' + (type === 'success' ? ' toast-success' : type === 'error' ? ' toast-error' : '');
+  /* Errors interrupt; everything else waits for a pause. The container is a
+     polite live region, so this only changes urgency. */
+  if (type === 'error') el.setAttribute('role', 'alert');
   el.textContent = msg;
   container.appendChild(el);
   setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 300); }, 2500);
 }
 
-/* ── Export ── */
-function exportReport(type) {
-  const allExpenses = [];
-  state.groups.forEach(g => {
-    db.getAllByIndex('expenses', 'groupId', g.id).then(exs => {
-      exs.forEach(e => { if (e) allExpenses.push(e); });
-      if (type === 'pdf') generatePDF(allExpenses);
-      else generateExcel(allExpenses);
-    });
-  });
-  setTimeout(() => {
-    if (allExpenses.length === 0) toast('لا توجد بيانات للتصدير', 'error');
-    else if (type === 'pdf') generatePDF(allExpenses);
-    else generateExcel(allExpenses);
-  }, 500);
+/* ── Export ──
+   The old version generated the file once per group (each with a partial
+   array) and then again from a setTimeout, so exporting 4 groups popped 5
+   print dialogs. Collect first, generate exactly once. */
+async function exportReport(type) {
+  const perGroup = await Promise.all(
+    state.groups.map((g) => db.getAllByIndex('expenses', 'groupId', g.id).catch(() => [])),
+  );
+  const allExpenses = perGroup.flat().filter(Boolean);
+
+  if (allExpenses.length === 0) { toast('لا توجد بيانات للتصدير', 'error'); return; }
+  if (type === 'pdf') generatePDF(allExpenses);
+  else generateExcel(allExpenses);
 }
 
 function generatePDF(expenses) {
@@ -1800,7 +1895,7 @@ function renderBudgetCard(b, spent, idx) {
       </div>
       <div class="bc-bottom">
         <span>${t('budget_income')} ${fmt(income)}</span>
-        <span style="color:var(--danger)">${fmt(spent)} ${t('budget_spent')}</span>
+        <span style="color:var(--negative)">${fmt(spent)} ${t('budget_spent')}</span>
       </div>
     </div>
   `;
@@ -1851,7 +1946,7 @@ async function renderBudgetDetail(budgetId) {
           <div class="bi-marker"></div>
           <div class="bi-desc">${esc(tx.description || 'مصروف')}</div>
           <div class="bi-amt">${fmt(tx.amount)}</div>
-          <button class="btn btn-ghost bi-del" onclick="budgetDelTx('${tx.id}','${b.id}')">✕</button>
+          <button class="btn btn-ghost bi-del" aria-label="حذف" onclick="budgetDelTx('${tx.id}','${b.id}')">✕</button>
         </div>
       `).join('')}
     </div>
@@ -1896,16 +1991,16 @@ function showAddBudget() {
   }
   showModal(t('add_budget'), `
     <div class="form-group">
-      <label class="form-label">${t('income_label')}</label>
+      <label class="form-label" for="bName">${t('income_label')}</label>
       <input class="form-input" id="bName" value="راتب ${months[2]?.label || ''}" placeholder="مثال: راتب يوليو">
     </div>
     <div class="form-row">
       <div class="form-group">
-        <label class="form-label">${t('budget_month')}</label>
+        <label class="form-label" for="bMonth">${t('budget_month')}</label>
         <select class="form-select" id="bMonth">${months.map(m => `<option value="${m.val}" ${m.val === months[2].val ? 'selected' : ''}>${m.label}</option>`).join('')}</select>
       </div>
       <div class="form-group">
-        <label class="form-label">${t('monthly_income')}</label>
+        <label class="form-label" for="bIncome">${t('monthly_income')}</label>
         <input class="form-input" id="bIncome" type="number" step="0.01" min="0" placeholder="0.00">
       </div>
     </div>
@@ -1939,16 +2034,16 @@ async function showEditBudget(budgetId) {
   }
   showModal(t('edit'), `
     <div class="form-group">
-      <label class="form-label">${t('income_label')}</label>
+      <label class="form-label" for="bName">${t('income_label')}</label>
       <input class="form-input" id="bName" value="${(b.name || '').replace(/[&<>"']/g, function(m) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]; })}">
     </div>
     <div class="form-row">
       <div class="form-group">
-        <label class="form-label">${t('budget_month')}</label>
+        <label class="form-label" for="bMonth">${t('budget_month')}</label>
         <select class="form-select" id="bMonth">${months.map(m => `<option value="${m.val}" ${m.val === b.month ? 'selected' : ''}>${m.label}</option>`).join('')}</select>
       </div>
       <div class="form-group">
-        <label class="form-label">${t('monthly_income')}</label>
+        <label class="form-label" for="bIncome">${t('monthly_income')}</label>
         <input class="form-input" id="bIncome" type="number" step="0.01" min="0" value="${b.income || 0}">
       </div>
     </div>
@@ -1986,6 +2081,12 @@ async function init() {
   await db.init();
   await loadState();
   await initAuth();
+  if (window.Cloud && window.Cloud.enabled) {
+    try { await Cloud.init(); }
+    catch (e) { console.warn('cloud init failed', e); }
+    const cloudNav = document.getElementById('cloudNavItem');
+    if (cloudNav) cloudNav.hidden = false;
+  }
 
   // Request persistent storage so browser never auto-clears our data
   if (navigator.storage && navigator.storage.persist) {
@@ -2057,6 +2158,7 @@ window.switchGroupTab = switchGroupTab;
 window.filterGroups = filterGroups;
 window.toggleTheme = toggleTheme;
 window.toggleHighContrast = toggleHighContrast;
+window.syncSwitchStates = syncSwitchStates;
 window.setCurrency = setCurrency;
 window.clearAllData = clearAllData;
 window.exportReport = exportReport;

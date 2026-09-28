@@ -2,34 +2,46 @@
   "name": "SplitEase - حساب الشلة",
   "short_name": "SplitEase",
   "description": "تطبيق تقاسم المصاريف الجماعية بسهولة",
-  "start_url": "index.html",
+  "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
-  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "display_override": ["standalone", "minimal-ui", "browser"],
   "orientation": "portrait-primary",
-  "scope": ".",
   "theme_color": "#0D9488",
   "background_color": "#F0F4F8",
   "categories": ["finance", "productivity", "social"],
   "lang": "ar",
   "dir": "rtl",
+  "id": "./",
+  "prefer_related_applications": false,
+  "launch_handler": { "client_mode": "navigate-existing" },
   "icons": [
-    { "src": "icons/icon-192.svg", "sizes": "192x192", "type": "image/svg+xml", "purpose": "any maskable" },
-    { "src": "icons/icon-512.svg", "sizes": "512x512", "type": "image/svg+xml", "purpose": "any maskable" }
+    { "src": "icons/icon-72.png", "sizes": "72x72", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-96.png", "sizes": "96x96", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-128.png", "sizes": "128x128", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-144.png", "sizes": "144x144", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-152.png", "sizes": "152x152", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-180.png", "sizes": "180x180", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-384.png", "sizes": "384x384", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ],
   "shortcuts": [
     {
       "name": "المجموعات",
       "short_name": "المجموعات",
       "description": "عرض المجموعات",
-      "url": "index.html#groups",
-      "icons": [{ "src": "icons/icon-192.svg", "sizes": "192x192" }]
+      "url": "./index.html#groups",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
       "name": "مصروف جديد",
       "short_name": "مصروف جديد",
       "description": "إضافة مصروف جديد",
-      "url": "index.html#add",
-      "icons": [{ "src": "icons/icon-192.svg", "sizes": "192x192" }]
+      "url": "./index.html#add",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     }
   ]
 }

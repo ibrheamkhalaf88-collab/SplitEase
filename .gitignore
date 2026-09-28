@@ -1,0 +1,15 @@
+# Build artefacts
+node_modules/
+.DS_Store
+Thumbs.db
+
+# Per-machine Supabase credentials — never commit these.
+# Create it from the template in js/supabase-config.js.
+js/supabase-config.local.js
+.env
+.env.*
+!.env.example
+
+# Supabase CLI local state
+supabase/.branches/
+supabase/.temp/
