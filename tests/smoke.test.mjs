@@ -7,7 +7,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, existsSync, statSync } from 'node:fs';
+import { readFileSync, existsSync, statSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
@@ -16,8 +16,15 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (p) => readFileSync(join(ROOT, p), 'utf8');
 const readBytes = (p) => readFileSync(join(ROOT, p));
 
-const SQL = read('supabase/migrations/0001_init.sql');
-const CLOUD = read('js/cloud.js');
+/* Every migration, concatenated in filename order: the client's RPC calls are
+   checked against the schema as a whole, not against the first file. */
+const MIGRATIONS = readdirSync(join(ROOT, 'supabase/migrations'))
+  .filter(f => f.endsWith('.sql'))
+  .sort()
+  .map(f => readFileSync(join(ROOT, 'supabase/migrations', f), 'utf8'))
+  .join('\n');
+
+const SQL = MIGRATIONS;const CLOUD = read('js/cloud.js');
 const CLOUD_UI = read('js/cloud-ui.js');
 const APP = read('js/app.js');
 const HTML = read('index.html');
@@ -191,7 +198,7 @@ test('the retired insecure schema was not reintroduced', () => {
   // The live migration must not contain the three clauses that made the first
   // schema unsafe. Comments are stripped first, so the file's own write-up of
   // the old bug can neither trip nor mask these checks.
-  const live = stripSqlComments(read('supabase/migrations/0001_init.sql'));
+  const live = stripSqlComments(MIGRATIONS);
   assert.doesNotMatch(live, /profiles_select[\s\S]{0,200}using\s*\(\s*true\s*\)/,
     'profiles_select must not be USING (true)');
   assert.doesNotMatch(live, /on public\.group_members for insert[\s\S]{0,300}user_id = auth\.uid\(\)\s*or/,

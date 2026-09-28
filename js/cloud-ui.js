@@ -25,6 +25,13 @@
   }
   function content() { return document.getElementById('appContent'); }
   function toastMsg(m, type) { if (window.toast) toast(m, type); }
+  function roomTypeLabel(t) { return t === 'family' ? 'عائلة' : 'شلة'; }
+  function roomTypeBadge(t) {
+    const family = t === 'family';
+    return `<span class="badge" style="background:${family ? 'var(--primary)' : 'var(--border-light)'};
+      color:${family ? '#fff' : 'var(--text)'};padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700">
+      ${family ? '🏠' : '👥'} ${roomTypeLabel(t)}</span>`;
+  }
 
   function requireAuth() {
     if (!Cloud.user) { renderLogin(); return false; }
@@ -118,10 +125,10 @@
       const myCode = await Cloud.getMyCode();
       content().innerHTML = `
         <div class="page-header">
-          <h1>الشلة السحابية 👥</h1>
+          <h1>غرفي السحابية 🏠</h1>
           <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <button class="btn btn-primary btn-sm" onclick="CloudUI.showCreate()">+ شلة جديدة</button>
-            <button class="btn btn-ghost btn-sm" onclick="CloudUI.showJoin()">دخول بكود</button>
+            <button class="btn btn-primary btn-sm" onclick="CloudUI.showCreate()">+ غرفة جديدة</button>
+            <button class="btn btn-ghost btn-sm" onclick="CloudUI.showJoin()">دخول لغرفة</button>
           </div>
         </div>
 
@@ -136,58 +143,112 @@
 
         ${groups.length === 0 ? `
           <div class="card"><div class="empty-state">
-            <h3>لسه مفيش شلّات</h3>
-            <p>اعمل شلة جديدة أو ادخل بكود صاحبك</p>
+            <h3>لسه مفيش غرف</h3>
+            <p>اعمل غرفة جديدة أو ادخل بـ اسمها وكلمة مرورها</p>
           </div></div>` : `
         <div class="group-grid">
           ${groups.map(g => `
             <div class="group-card" onclick="CloudUI.open('${g.id}')">
               <div style="font-size:32px">${g.icon || '👥'}</div>
               <div class="group-card-name">${esc(g.name)}</div>
-              <div class="group-card-meta">${g.currency}</div>
+              <div class="group-card-meta">${roomTypeLabel(g.room_type)} · ${g.currency}</div>
             </div>`).join('')}
         </div>`}
       `;
     },
 
     showCreate() {
-      showModalSafe('شلة جديدة', `
-        <div class="form-group"><label class="form-label">اسم الشلة</label>
-          <input class="form-input" id="cgName" placeholder="مثال: سفر Malta"></div>
+      showModalSafe('غرفة جديدة', `
+        <div class="form-group"><label class="form-label">اسم الغرفة</label>
+          <input class="form-input" id="cgName" placeholder="مثال: شلة المعهد"></div>
+        <div class="form-group"><label class="form-label">النوع</label>
+          <div style="display:flex;gap:8px">
+            <label class="btn btn-ghost" style="flex:1;cursor:pointer">
+              <input type="radio" name="cgType" value="friends" checked> 👥 شلة</label>
+            <label class="btn btn-ghost" style="flex:1;cursor:pointer">
+              <input type="radio" name="cgType" value="family"> 🏠 عائلة</label>
+          </div>
+        </div>
+        <div class="form-group"><label class="form-label">كلمة مرور الدخول</label>
+          <input class="form-input" id="cgPass" type="password" placeholder="6 أحرف على الأقل">
+          <p style="font-size:12px;color:var(--text-muted);margin-top:6px">ابعتها لأصحابك — من غيرها ما حد يقدر يدخل.</p></div>
+        <div class="form-group"><label class="form-label">اسمك جوه الغرفة</label>
+          <input class="form-input" id="cgMe" placeholder="مثال: شادي"></div>
         <div class="form-group"><label class="form-label">العملة</label>
           <select class="form-select" id="cgCur">
             <option>EGP</option><option>USD</option><option>SAR</option><option>AED</option><option>EUR</option>
           </select></div>
-        <button class="btn btn-primary btn-block btn-lg" onclick="CloudUI.create()">إنشاء</button>
+        <button class="btn btn-primary btn-block btn-lg" onclick="CloudUI.create()">إنشاء الغرفة</button>
       `);
     },
     async create() {
       const name = document.getElementById('cgName').value.trim();
-      if (!name) return toastMsg('اكتب اسم الشلة', 'error');
+      const password = document.getElementById('cgPass').value;
+      const type = (document.querySelector('input[name="cgType"]:checked') || {}).value || 'friends';
+      const me = document.getElementById('cgMe').value.trim();
+      if (!name) return toastMsg('اكتب اسم الغرفة', 'error');
+      if (password.length < 6) return toastMsg('كلمة المرور 6 أحرف على الأقل', 'error');
       try {
-        const g = await Cloud.createGroup({ name, currency: document.getElementById('cgCur').value, icon: '👥', color: '#0D9488' });
+        const g = await Cloud.createRoom({
+          name, password, roomType: type,
+          currency: document.getElementById('cgCur').value,
+          displayName: me || null,
+        });
         closeModalSafe();
-        toastMsg('تم إنشاء الشلة!', 'success');
+        toastMsg('تم إنشاء الغرفة!', 'success');
         location.hash = 'cloudgroup/' + g.id;
       } catch (e) { toastMsg(e.message || 'خطأ', 'error'); }
     },
 
     showJoin() {
-      showModalSafe('دخول لشلة بكود', `
-        <div class="form-group"><label class="form-label">كود الشلة أو رابط الدعوة</label>
-          <input class="form-input" id="cjCode" dir="ltr" placeholder="كود الشلة"></div>
+      showModalSafe('دخول لغرفة', `
+        <div class="form-group"><label class="form-label">اسم الغرفة</label>
+          <input class="form-input" id="cjName" placeholder="اسم الغرفة زي ما هو"></div>
+        <div class="form-group"><label class="form-label">كلمة المرور</label>
+          <input class="form-input" id="cjPass" type="password" placeholder="●●●●●●"></div>
+        <div class="form-group"><label class="form-label">اسمك جوه الغرفة</label>
+          <input class="form-input" id="cjMe" placeholder="الاسم اللي هتظهر بيه للباقي">
+          <p style="font-size:12px;color:var(--text-muted);margin-top:6px">اسمك جوه الغرفة مختلف عن اسم حسابك، وتقدر تغيّره بعدين.</p></div>
+        <div id="cjErr" style="color:#EF4444;font-size:13px;display:none;margin-bottom:8px"></div>
         <button class="btn btn-primary btn-block btn-lg" onclick="CloudUI.join()">دخول</button>
+        <p style="font-size:12px;color:var(--text-muted);margin-top:10px;text-align:center">
+          معاك كود دعوة؟ <a href="#" onclick="CloudUI.showJoinCode();return false" style="color:var(--primary)">ادخل بالكود</a></p>
       `);
     },
+    showJoinCode() {
+      showModalSafe('دخول بكود دعوة', `
+        <div class="form-group"><label class="form-label">كود الشلة أو الرابط</label>
+          <input class="form-input" id="cjCode" dir="ltr" placeholder="كود الدعوة"></div>
+        <button class="btn btn-primary btn-block btn-lg" onclick="CloudUI.join()">دخول</button>`);
+    },
     async join() {
-      const input = document.getElementById('cjCode').value.trim();
-      if (!input) return toastMsg('اكتب كود الدعوة', 'error');
+      const codeEl = document.getElementById('cjCode');
+      // The invite-code form and the name+password form share this handler.
+      if (codeEl) {
+        const code = codeEl.value.trim();
+        if (!code) return toastMsg('اكتب كود الدعوة', 'error');
+        try {
+          const res = await Cloud.joinGroup(code);
+          closeModalSafe();
+          toastMsg('تم الدخول للشلة!', 'success');
+          location.hash = 'cloudgroup/' + (res.groupId || code);
+        } catch (e) { toastMsg(e.message || 'كود غير صالح', 'error'); }
+        return;
+      }
+
+      const name = document.getElementById('cjName').value.trim();
+      const password = document.getElementById('cjPass').value;
+      const me = document.getElementById('cjMe').value.trim();
+      const err = document.getElementById('cjErr');
+      const fail = (msg) => { if (err) { err.textContent = msg; err.style.display = 'block'; } else toastMsg(msg, 'error'); };
+      if (!name) return fail('اكتب اسم الغرفة');
+      if (!password) return fail('اكتب كلمة المرور');
       try {
-        const res = await Cloud.joinGroup(input);
+        const res = await Cloud.joinRoom({ name, password, displayName: me || null });
         closeModalSafe();
-        toastMsg('تم الدخول للشلة!', 'success');
-        location.hash = 'cloudgroup/' + (res.groupId || input);
-      } catch (e) { toastMsg(e.message || 'كود غير صالح', 'error'); }
+        toastMsg('أهلاً في الغرفة!', 'success');
+        location.hash = 'cloudgroup/' + res.roomId;
+      } catch (e) { fail(e.message || 'اسم الغرفة أو كلمة المرور غير صحيحة'); }
     },
 
     /* ── group page ── */
@@ -206,6 +267,7 @@
       if (!group) { content().innerHTML = `<p style="padding:40px">المجموعة غير موجودة أو ما قدرتش تفتح.</p>`; return; }
       const meRow = members.find(m => m.user_id === Cloud.user.id);
       const canEdit = !!(meRow && (meRow.role === 'admin' || meRow.can_edit));
+      state._canEdit = canEdit;
 
       content().innerHTML = `
         <button class="back-btn" onclick="navigate('cloud')">← رجوع</button>
@@ -213,15 +275,17 @@
           <div style="display:flex;align-items:center;gap:12px">
             <div style="font-size:36px">${group.icon || '👥'}</div>
             <div>
-              <h1>${esc(group.name)}</h1>
+              <h1>${esc(group.name)} ${roomTypeBadge(group.room_type)}</h1>
               <div class="group-meta" style="font-size:13px;color:var(--text-muted)">
                 ${members.length} عضو · ${group.currency}
+                ${meRow ? ` · اسمك هنا: <strong>${esc(meRow.display_name || '—')}</strong>` : ''}
                 ${meRow && meRow.role === 'admin' ? ' · <span style="color:var(--primary);font-weight:700">أنت الأدمن</span>' : ''}
                 ${meRow && meRow.role !== 'admin' && !meRow.can_edit ? ' · <span style="color:var(--negative)">صلاحية مشاهدة فقط</span>' : ''}
               </div>
             </div>
           </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-ghost btn-sm" onclick="CloudUI.showMyName('${gid}')">✏️ اسمي هنا</button>
             <button class="btn btn-ghost btn-sm" onclick="CloudUI.showInvite('${gid}')">🔗 دعوة</button>
             ${isAdmin ? `<button class="btn btn-ghost btn-sm" onclick="CloudUI.showAdmin('${gid}')">⚙️ إدارة الأعضاء</button>` : ''}
             ${canEdit ? `<button class="btn btn-accent btn-sm" onclick="CloudUI.showAddExpense('${gid}')">+ مصروف</button>` : ''}
@@ -298,14 +362,26 @@
         const m = members.find(mm => mm.user_id === p.userId);
         return `${esc(m ? (m.display_name || 'عضو') : 'عضو')} ${money(p.amount, cur)}`;
       }).join(' + ');
+      const mine = Cloud.user && e.created_by === Cloud.user.id;
       return `
         <div class="expense-item">
           <div class="expense-info">
             <div class="expense-description">${esc(e.description)}</div>
             <div class="expense-meta">${e.date} · ${who(e.paid_by)}</div>
           </div>
-          <div class="expense-amount">${money(e.amount, cur)}</div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div class="expense-amount">${money(e.amount, cur)}</div>
+            ${mine ? `<button class="btn btn-ghost btn-sm" title="تعديل"
+                onclick="CloudUI.showAddExpense('${state.current}','${e.id}')">✏️</button>` : ''}
+            ${state._canEdit ? `<button class="btn btn-ghost btn-sm" title="حذف"
+                onclick="CloudUI.deleteExpense('${state.current}','${e.id}')">🗑</button>` : ''}
+          </div>
         </div>`;
+    },
+    async deleteExpense(gid, eid) {
+      if (!confirm('تحذف المصروف ده؟')) return;
+      try { await Cloud.deleteExpense(gid, eid); toastMsg('تم الحذف', 'success'); }
+      catch (e) { toastMsg(e.message || 'خطأ', 'error'); }
     },
 
     _upsertExpense(e, isNew) {
@@ -325,27 +401,33 @@
       if (state.tab === 'expenses') this._renderExpenses(state.current, document.getElementById('cloudTab'));
     },
 
-    /* ── add expense (live) ── */
-    async showAddExpense(gid) {
+    /* ── add / edit expense (live) ── */
+    async showAddExpense(gid, editId) {
       const members = state.members;
-      showModalSafe('مصروف جديد', `
+      const e = editId ? (state._expenses || []).find(x => x.id === editId) : null;
+      const paid = {};
+      (e ? e.paid_by : []).forEach(p => { paid[p.userId] = p.amount; });
+      showModalSafe(e ? 'تعديل المصروف' : 'مصروف جديد', `
         <div class="form-group"><label class="form-label">الوصف</label>
-          <input class="form-input" id="ceDesc" placeholder="مثال: عشاء"></div>
+          <input class="form-input" id="ceDesc" value="${esc(e ? e.description : '')}" placeholder="مثال: عشاء"></div>
         <div class="form-group"><label class="form-label">المبلغ</label>
-          <input class="form-input" id="ceAmount" type="number" step="0.01" min="0" placeholder="0.00"></div>
+          <input class="form-input" id="ceAmount" type="number" step="0.01" min="0" placeholder="0.00"
+            value="${e ? Number(e.amount) : ''}"></div>
         <div class="form-group"><label class="form-label">من دفع؟ (ممكن أكتر من واحد)</label>
           <div id="cePayers">
             ${members.map(m => `
               <div class="member-split-item">
                 <span class="member-name">${esc(m.display_name || 'عضو')}</span>
-                <input class="form-input payer-input" data-uid="${m.user_id}" type="number" step="0.01" min="0" placeholder="0">
+                <input class="form-input payer-input" data-uid="${m.user_id}" type="number" step="0.01" min="0"
+                  placeholder="0" value="${paid[m.user_id] != null ? paid[m.user_id] : ''}">
               </div>`).join('')}
           </div>
         </div>
-        <button class="btn btn-primary btn-block btn-lg" onclick="CloudUI.addExpense('${gid}')">حفظ المصروف</button>
+        <button class="btn btn-primary btn-block btn-lg" onclick="CloudUI.addExpense('${gid}','${editId || ''}')">
+          ${e ? 'حفظ التعديل' : 'حفظ المصروف'}</button>
       `);
     },
-    async addExpense(gid) {
+    async addExpense(gid, editId) {
       const desc = document.getElementById('ceDesc').value.trim();
       const amount = parseFloat(document.getElementById('ceAmount').value);
       if (!desc || !amount || amount <= 0) return toastMsg('أدخل وصف ومبلغ صحيح', 'error');
@@ -358,14 +440,21 @@
       // equal split across members
       const per = Math.round((amount / state.members.length) * 100) / 100;
       const shares = state.members.map(m => ({ userId: m.user_id, amount: per }));
+      const date = new Date().toISOString().slice(0, 10);
       try {
-        await Cloud.addExpense(gid, {
-          description: desc, amount, category: 'other',
-          date: new Date().toISOString().slice(0, 10),
-          splitType: 'equal', paidBy, shares,
-        });
+        if (editId) {
+          await Cloud.updateExpense(gid, editId, {
+            description: desc, amount, date,
+            paid_by: paidBy, shares,
+          });
+        } else {
+          await Cloud.addExpense(gid, {
+            description: desc, amount, category: 'other',
+            date, splitType: 'equal', paidBy, shares,
+          });
+        }
         closeModalSafe();
-        toastMsg('تم إضافة المصروف ✅', 'success');
+        toastMsg(editId ? 'تم تعديل المصروف ✅' : 'تم إضافة المصروف ✅', 'success');
       } catch (e) { toastMsg(e.message || 'خطأ', 'error'); }
     },
 
@@ -438,18 +527,77 @@
         <div class="balance-list">
           ${members.map(m => {
             const b = bal[m.user_id] || 0;
+            const isMe = m.user_id === Cloud.user.id;
             return `<div class="balance-item">
-              <span class="balance-name">${esc(m.display_name || 'عضو')}${m.user_id === Cloud.user.id ? ' (أنت)' : ''}</span>
-              <span class="balance-amount ${b >= 0 ? 'positive' : 'negative'}">${money(b, cur)}</span>
+              <span class="balance-name">${esc(m.display_name || 'عضو')}${isMe ? ' (أنت)' : ''}</span>
+              <span style="display:flex;align-items:center;gap:8px">
+                <span class="balance-amount ${b >= 0 ? 'positive' : 'negative'}">${money(b, cur)}</span>
+                ${!isMe && state._canEdit ? `<button class="btn btn-ghost btn-sm"
+                  onclick="CloudUI.showSettle('${gid}','${m.user_id}')">سدد</button>` : ''}
+              </span>
             </div>`;
           }).join('')}
         </div></div>`;
     },
 
-    /* ── admin panel (add by code + permission toggles) ── */
+    async showSettle(gid, toUserId) {
+      const m = state.members.find(x => x.user_id === toUserId);
+      showModalSafe('تسجيل دفعة', `
+        <p style="font-size:13px;color:var(--text-muted);margin-bottom:10px">
+          سجّل إنك دفعت لـ <strong>${esc(m ? m.display_name : 'العضو')}</strong>.</p>
+        <div class="form-group"><label class="form-label">المبلغ</label>
+          <input class="form-input" id="stAmount" type="number" step="0.01" min="0" placeholder="0.00"></div>
+        <div class="form-group"><label class="form-label">الطريقة</label>
+          <select class="form-select" id="stMethod">
+            <option value="cash">كاش</option><option value="transfer">تحويل</option><option value="instapay">إنستاباي</option>
+          </select></div>
+        <button class="btn btn-primary btn-block btn-lg" onclick="CloudUI.saveSettle('${gid}','${toUserId}')">تسجيل</button>
+      `);
+    },
+    async saveSettle(gid, toUserId) {
+      const amount = parseFloat(document.getElementById('stAmount').value);
+      if (!amount || amount <= 0) return toastMsg('أدخل مبلغ صحيح', 'error');
+      try {
+        await Cloud.addSettlement(gid, {
+          from: Cloud.user.id, to: toUserId, amount,
+          method: document.getElementById('stMethod').value,
+          status: 'paid',
+          date: new Date().toISOString().slice(0, 10),
+        });
+        closeModalSafe();
+        toastMsg('تم تسجيل الدفعة ✅', 'success');
+        this.setTab('balances', true);
+      } catch (e) { toastMsg(e.message || 'خطأ', 'error'); }
+    },
+
+    /* ── my name inside this room ── */
+    async showMyName(gid) {
+      const me = state.members.find(m => m.user_id === Cloud.user?.id);
+      showModalSafe('اسمك في الغرفة', `
+        <div class="form-group"><label class="form-label">الاسم اللي هتظهر بيه</label>
+          <input class="form-input" id="mnName" value="${esc(me ? me.display_name : '')}" placeholder="مثال: شادي">
+          <p style="font-size:12px;color:var(--text-muted);margin-top:6px">اسمك جوه الغرفة دي بس — مش اسم حسابك العام.</p></div>
+        <button class="btn btn-primary btn-block btn-lg" onclick="CloudUI.saveMyName('${gid}')">حفظ</button>
+      `);
+    },
+    async saveMyName(gid) {
+      const name = document.getElementById('mnName').value.trim();
+      if (!name) return toastMsg('اكتب الاسم', 'error');
+      if (name.length > 40) return toastMsg('الاسم 40 حرف على الأقل', 'error');
+      try {
+        await Cloud.setMyRoomName(gid, name);
+        closeModalSafe();
+        toastMsg('تم تحديث اسمك ✅', 'success');
+        this.renderGroup(gid);
+      } catch (e) { toastMsg(e.message || 'خطأ', 'error'); }
+    },
+
+    /* ── admin panel (add by code + permission toggles + room settings) ── */
     async showAdmin(gid) {
       const members = await Cloud.members(gid);
-      showModalSafe('إدارة الأعضاء', `
+      const group = await getGroup(gid);
+      const isFamily = group && group.room_type === 'family';
+      showModalSafe('إدارة الغرفة', `
         <div class="form-group">
           <label class="form-label">إضافة عضو بالكود (ID)</label>
           <div style="display:flex;gap:8px">
@@ -457,6 +605,21 @@
             <button class="btn btn-primary" onclick="CloudUI.addByCode('${gid}')">إضافة</button>
           </div>
         </div>
+
+        <div class="card" style="margin-top:12px">
+          <div class="card-header"><h2>إعدادات الغرفة</h2></div>
+          <div class="form-group"><label class="form-label">نوع الغرفة</label>
+            <select class="form-select" id="arType">
+              <option value="friends" ${!isFamily ? 'selected' : ''}>👥 شلة</option>
+              <option value="family" ${isFamily ? 'selected' : ''}>🏠 عائلة</option>
+            </select></div>
+          <div class="form-group"><label class="form-label">كلمة مرور جديدة</label>
+            <input class="form-input" id="arPass" type="password" placeholder="اتركها فاضية عشان ما تتغيرش"></div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-primary btn-sm" onclick="CloudUI.saveRoomSettings('${gid}')">حفظ الإعدادات</button>
+          </div>
+        </div>
+
         <div class="card" style="margin-top:12px">
           <div class="card-header"><h2>الأعضاء والصلاحيات</h2></div>
           <div class="balance-list">
@@ -465,9 +628,13 @@
                 <span class="balance-name">
                   ${esc(m.display_name || 'عضو')}
                   ${m.role === 'admin' ? '<span class="badge" style="background:var(--primary);color:#fff;padding:1px 6px;border-radius:6px;font-size:10px;margin-inline-start:6px">أدمن</span>' : ''}
+                  ${m.user_id === Cloud.user.id ? ' <span style="font-size:11px;color:var(--text-muted)">(أنت)</span>' : ''}
                 </span>
                 <span style="display:flex;gap:6px;align-items:center">
-                  ${m.role === 'admin' ? '<span style="font-size:11px;color:var(--text-muted)">صلاحية كاملة</span>' : `
+                  ${m.role === 'admin' ? `
+                    <button class="btn btn-ghost btn-sm" onclick="CloudUI.setRole('${gid}','${m.user_id}','member')">شيل الأدمنية</button>
+                  ` : `
+                    <button class="btn btn-ghost btn-sm" onclick="CloudUI.setRole('${gid}','${m.user_id}','admin')">امسك أدمن</button>
                     <button class="btn ${m.can_edit ? 'btn-ghost' : 'btn-danger'} btn-sm" onclick="CloudUI.togglePerm('${gid}','${m.user_id}',${!m.can_edit})">
                       ${m.can_edit ? 'يقدر يعدّل ✅' : 'مشاهدة فقط ⛔'}
                     </button>
@@ -477,8 +644,29 @@
               </div>`).join('')}
           </div>
         </div>
-        <p style="font-size:12px;color:var(--text-muted);margin-top:12px">الأعضاء القادرين يضيفوا مصاريفهم لحظياً. الأدمن يقدر يخلي أي عضو «مشاهدة فقط» فيشوف بس ما يقدرش يضيف أو يعدّل.</p>
+        <p style="font-size:12px;color:var(--text-muted);margin-top:12px">الأعضاء القادرين يضيفوا مصاريفهم لحظياً. الأدمن يقدر يخلي أي عضو «مشاهدة فقط»، ويمنع الغرفة من إنها تفضل من غير أدمن.</p>
       `, true);
+    },
+    async saveRoomSettings(gid) {
+      const type = document.getElementById('arType').value;
+      const pass = document.getElementById('arPass').value;
+      try {
+        if (pass && pass.length < 6) throw new Error('كلمة المرور 6 أحرف على الأقل');
+        const group = await getGroup(gid);
+        if (type !== group.room_type) await Cloud.setRoomType(gid, type);
+        if (pass) await Cloud.setRoomPassword(gid, pass);
+        closeModalSafe();
+        toastMsg('تم حفظ إعدادات الغرفة ✅', 'success');
+        this.renderGroup(gid);
+      } catch (e) { toastMsg(e.message || 'خطأ', 'error'); }
+    },
+    async setRole(gid, uid, role) {
+      if (role === 'member' && !confirm('تشيل الأدمنية عن العضو ده؟')) return;
+      if (role === 'admin' && !confirm('تمسك أدمن للعضو ده؟')) return;
+      try {
+        await Cloud.changeMemberRole(gid, uid, role);
+        this.showAdmin(gid);
+      } catch (e) { toastMsg(e.message || 'خطأ', 'error'); }
     },
     async addByCode(gid) {
       const code = document.getElementById('amCode').value.trim();

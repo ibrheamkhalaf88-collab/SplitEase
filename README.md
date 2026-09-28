@@ -1,7 +1,8 @@
 # SplitEase
 
-شات لحظي + تقاسم مصاريف جماعي. تطبيق ويب تقدمي (PWA) يعمل أوفلاين، عربي
-RTL بالكامل، بدون أي build step.
+غرف مشتركة (شلة / عائلة) بدخول بالاسم وكلمة المرور + شات لحظي + تقاسم
+مصاريف جماعي. تطبيق ويب تقدمي (PWA) يعمل أوفلاين، عربي RTL بالكامل، بدون أي
+build step.
 
 ## التشغيل محلياً
 
@@ -25,7 +26,7 @@ npx serve .
 
 ```bash
 supabase link --project-ref <your-project-ref>
-supabase db push          # يقرأ supabase/migrations/0001_init.sql
+supabase db push          # يقرأ كل ملفات supabase/migrations/ بالترتيب
 ```
 
 > لا تشغّل `supabase/schema.sql` يدوياً — الملف قديم وغير آمن، ومكتوب فيه
@@ -52,11 +53,14 @@ window.SUPABASE_CONFIG = {
 npm test
 ```
 
-38 اختبار على `node:test` بلا اعتمادية. تغطي: سلامة الـ service worker و
+60 اختبار على `node:test` بلا اعتمادية. تغطي: سلامة الـ service worker و
 manifest، توافق أسماء RPC بين العميل والـ migration، عقود Accessibility،
 وخصائص RLS الحساسة (profiles المقروءة للذات فقط، منع الانضمام الذاتي لكل
 مجموعة، تثبيت `search_path` لكل دالة `SECURITY DEFINER`، ومنع الكتابة
-المباشرة على جدول الدعوات).
+المباشرة على جدول الدعوات) — إضافة إلى `tests/rooms.test.mjs` التي تحرس
+نظام الغرف: `room_secrets` مقفولة على `SECURITY DEFINER` بس، كلمة السر
+bcrypt، و`join_room` بتردّ بمồn واحد لكل من «الغرفة مش موجودة» و«كلمة السر
+غلط» عشان ما يبقاش فيه طريقة لتكهن بأسماء الغرف.
 
 > على Windows، شغّل `node --test` **بدون** مسار مجلد؛ تمرير `tests` يفشل تحت
 > المسار غير-ASCII فيظهر `MODULE_NOT_FOUND`.

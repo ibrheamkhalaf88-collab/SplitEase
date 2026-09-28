@@ -171,6 +171,89 @@
     return error;
   }
 
+  /* ── Rooms ──
+   * A room is a group opened by name + password instead of by invite code.
+   * join_room answers with jsonb rather than raising, so a wrong password and
+   * a room that does not exist produce the same payload — see 0002_rooms.sql.
+   */
+  Cloud.createRoom = async function ({ name, password, roomType, currency, displayName }) {
+    const u = Cloud.user; if (!u) throw new Error('سجّل دخولك أولاً');
+    const { data, error } = await sb.rpc('create_room', {
+      p_name: name,
+      p_password: password,
+      p_room_type: roomType || 'friends',
+      p_currency: currency || 'EGP',
+      p_display_name: displayName || null,
+    });
+    if (error) throw friendlyRoomError(error);
+    return data;
+  };
+
+  Cloud.joinRoom = async function ({ name, password, displayName }) {
+    const u = Cloud.user; if (!u) throw new Error('سجّل دخولك أولاً');
+    const { data, error } = await sb.rpc('join_room', {
+      p_name: name,
+      p_password: password,
+      p_display_name: displayName || null,
+    });
+    if (error) throw friendlyRoomError(error);
+    if (!data || data.ok !== true) {
+      const e = new Error(roomErrorMessage(data && data.error));
+      e.retryAfter = data && data.retry_after;
+      throw e;
+    }
+    return { ok: true, roomId: data.room_id };
+  };
+
+  Cloud.setRoomPassword = async function (roomId, newPassword) {
+    const { error } = await sb.rpc('set_room_password', {
+      p_room_id: roomId, p_new_password: newPassword,
+    });
+    if (error) throw friendlyRoomError(error);
+  };
+
+  Cloud.setRoomType = async function (roomId, roomType) {
+    const { error } = await sb.rpc('set_room_type', { p_room_id: roomId, p_room_type: roomType });
+    if (error) throw friendlyRoomError(error);
+  };
+
+  Cloud.setMyRoomName = async function (roomId, displayName) {
+    const { error } = await sb.rpc('set_my_room_name', {
+      p_room_id: roomId, p_display_name: displayName,
+    });
+    if (error) throw friendlyRoomError(error);
+  };
+
+  Cloud.changeMemberRole = async function (roomId, userId, role) {
+    const { error } = await sb.rpc('change_member_role', {
+      p_room_id: roomId, p_user_id: userId, p_role: role,
+    });
+    if (error) throw friendlyRoomError(error);
+  };
+
+  function roomErrorMessage(code) {
+    switch (code) {
+      case 'not_authenticated': return 'سجّل دخولك أولاً';
+      case 'too_many_attempts': return 'حاولت كتير — استنى شوية وجرّب تاني';
+      case 'invalid_credentials':
+      default: return 'اسم الغرفة أو كلمة المرور غير صحيحة';
+    }
+  }
+
+  // Postgres reports the unique index on lower(name) as 23505; the rest of the
+  // room errors are raised with Arabic-facing messages already.
+  function friendlyRoomError(error) {
+    if (error?.code === '23505') return new Error('اسم الغرفة ده مستخدم — جرّب اسم تاني');
+    const m = String(error?.message || '');
+    if (m.includes('not authenticated')) return new Error('سجّل دخولك أولاً');
+    if (m.includes('at least 6')) return new Error('كلمة المرور 6 أحرف على الأقل');
+    if (m.includes('room name must be between')) return new Error('اسم الغرفة من 2 لـ 60 حرف');
+    if (m.includes('only a room admin')) return new Error('الأدمن فقط يقدر يعمل ده');
+    if (m.includes('keep at least one admin')) return new Error('الغرفة لازم يفضل فيها أدمن واحد');
+    if (m.includes('not a member')) return new Error('مش عضو في الغرفة دي');
+    return error;
+  }
+
   /* ── Members & admin controls ── */
   Cloud.members = async function (groupId) {
     const { data } = await sb.from('group_members')
