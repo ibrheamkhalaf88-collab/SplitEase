@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#FFF8EC">
+<title>SplitEase — بلاطة الأسلوب (P0)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@400;500;600;700;800&family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════════════════════════
+   SPLITSTYLE — STICKER / COMIC · LIGHT ONLY · MOBILE-FIRST 360
+   ══════════════════════════════════════════════════════════ */
+:root{
+  /* surfaces */
+  --paper:#FFF8EC;
+  --paper-2:#FFEFDC;
+  --card:#FFFFFF;
+  /* ink */
+  --ink:#221631;
+  --ink-70:#221631B8;
+  --ink-45:#22163173;
+  --ink-20:#22163133;
+  --ink-10:#2216311A;
+  /* candy */
+  --sun:#FFD23F;
+  --coral:#FF6B6B;
+  --mint:#3DDC97;
+  --sky:#4D9DE0;
+  --grape:#9B5DE5;
+  /* semantic (sticker = fill + ink text, no white-on-color unless contrast allows) */
+  --ok:#3DDC97;
+  --warn:#FFD23F;
+  --bad:#FF6B6B;
+  /* geometry */
+  --r-sm:14px;
+  --r:22px;
+  --r-lg:30px;
+  --r-pill:999px;
+  --stroke:3px;
+  --stroke-2:2px;
+  --shadow:4px 5px 0 var(--ink);
+  --shadow-sm:3px 3px 0 var(--ink);
+  --shadow-lg:7px 8px 0 var(--ink);
+  --press:translate(3px,4px);
+  /* motion */
+  --pop:cubic-bezier(.34,1.56,.64,1);
+  --t-fast:.14s;
+  --t:.22s;
+  /* space */
+  --tap:48px;
+  --nav-h:70px;
+  --safe-b:env(safe-area-inset-bottom,0px);
+  /* type */
+  --display:'Baloo Bhaijaan 2',system-ui,sans-serif;
+  --body:'Cairo',system-ui,sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:var(--paper);
+  background-image:radial-gradient(var(--ink-10) 1.4px,transparent 1.4px);
+  background-size:26px 26px;
+  color:var(--ink);
+  font-family:var(--body);
+  font-size:15px;line-height:1.75;
+  overflow-x:hidden;
+}
+h1,h2,h3,h4,.d{font-family:var(--display);letter-spacing:-.01em;line-height:1.25;font-weight:700}
+.num{font-family:var(--display);font-variant-numeric:tabular-nums;font-weight:700}
+a{color:inherit}
+.wrap{max-width:1120px;margin-inline:auto;padding:26px 16px 90px}
+
+/* ── sticker primitives ───────────────────────────────── */
+.stk{background:var(--card);border:var(--stroke) solid var(--ink);border-radius:var(--r);box-shadow:var(--shadow)}
+.stk-flat{background:var(--card);border:var(--stroke) solid var(--ink);border-radius:var(--r)}
+
+/* ── page header ─────────────────────────────────────── */
+.page-h{margin-bottom:26px}
+.badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.badge{
+  display:inline-flex;align-items:center;gap:7px;
+  font-family:var(--display);font-size:12.5px;font-weight:700;
+  padding:6px 13px;border-radius:var(--r-pill);
+  border:var(--stroke-2) solid var(--ink);background:var(--card);
+}
+.badge.b1{background:var(--sun)}
+.badge.b2{background:var(--mint)}
+.badge.b3{background:var(--sky);color:#fff}
+.badge.b4{background:var(--grape);color:#fff}
+h1{font-size:clamp(30px,7vw,46px);font-weight:800}
+.lede{color:var(--ink-70);margin-top:10px;max-width:60ch;font-size:15.5px}
+
+/* ── section shell ───────────────────────────────────── */
+.sec{margin-top:38px}
+.sec-t{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.sec-t .n{
+  width:34px;height:34px;flex:0 0 34px;display:grid;place-items:center;
+  background:var(--ink);color:var(--paper);border-radius:11px;
+  font-family:var(--display);font-weight:800;font-size:15px;
+  transform:rotate(-6deg);
+}
+.sec-t h2{font-size:23px;font-weight:800}
+.sec-t p{font-size:13.5px;color:var(--ink-45);font-weight:600}
+.panel{padding:18px 16px}
+
+/* ── palette ─────────────────────────────────────────── */
+.swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:12px}
+.sw{border:var(--stroke) solid var(--ink);border-radius:16px;overflow:hidden;background:var(--card);box-shadow:var(--shadow-sm)}
+.sw .c{height:64px;border-bottom:var(--stroke) solid var(--ink);display:flex;align-items:flex-end;padding:7px 9px}
+.sw .m{padding:9px 10px 11px;font-size:11.5px;line-height:1.5}
+.sw .m b{font-family:var(--display);display:block;font-size:13px}
+.sw .m span{color:var(--ink-45);font-variant-numeric:tabular-nums;letter-spacing:.04em}
+.use{display:grid;gap:8px;margin-top:14px;font-size:13.5px;color:var(--ink-70)}
+.use li{list-style:none;padding-inline-start:22px;position:relative}
+.use li::before{content:"■";position:absolute;inset-inline-start:0;color:var(--grape)}
+
+/* ── type scale ──────────────────────────────────────── */
+.typerow{display:flex;align-items:baseline;gap:14px;padding:13px 0;border-bottom:2px dashed var(--ink-20);flex-wrap:wrap}
+.typerow:last-child{border-bottom:0}
+.typerow .k{font-size:11.5px;font-family:var(--display);color:var(--ink-45);min-width:118px;font-weight:700;letter-spacing:.03em}
+.typerow .s{color:var(--ink-45);font-size:11.5px;margin-inline-start:auto;font-variant-numeric:tabular-nums}
+
+/* ── buttons ─────────────────────────────────────────── */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:9px;
+  font-family:var(--display);font-weight:700;font-size:16px;
+  min-height:52px;padding:12px 24px;border-radius:var(--r-pill);
+  border:var(--stroke) solid var(--ink);background:var(--card);color:var(--ink);
+  box-shadow:var(--shadow);cursor:pointer;text-decoration:none;
+  transition:transform var(--t-fast) var(--pop),box-shadow var(--t-fast) var(--pop),background var(--t);
+  -webkit-tap-highlight-color:transparent;
+}
+.btn:hover{transform:translate(-1px,-2px);box-shadow:var(--shadow-lg)}
+.btn:active{transform:var(--press);box-shadow:1px 1px 0 var(--ink)}
+.btn:focus-visible{outline:3px solid var(--grape);outline-offset:3px}
+.btn.pri{background:var(--mint)}
+.btn.sce{background:var(--sun)}
+.btn.ter{background:var(--card)}
+.btn.dgr{background:var(--coral)}
+.btn.wide{width:100%}
+.btn.sm{min-height:var(--tap);font-size:14.5px;padding:8px 18px;box-shadow:var(--shadow-sm)}
+.btn[disabled]{opacity:.45;box-shadow:2px 2px 0 var(--ink-20);cursor:not-allowed;transform:none}
+.btn-row{display:flex;gap:12px;flex-wrap:wrap}
+
+/* ── cards ───────────────────────────────────────────── */
+.cards{display:grid;gap:14px;grid-template-columns:1fr}
+.card{padding:16px 16px 18px;position:relative;overflow:hidden}
+.card .top{display:flex;align-items:center;gap:11px}
+.card .ico{
+  width:44px;height:44px;flex:0 0 44px;border-radius:14px;
+  border:var(--stroke) solid var(--ink);display:grid;place-items:center;font-size:22px;
+}
+.card h3{font-size:17.5px;font-weight:800}
+.card .sub{font-size:13px;color:var(--ink-45);font-weight:600}
+.card .big{font-family:var(--display);font-size:32px;font-weight:800;font-variant-numeric:tabular-nums;margin-top:12px;line-height:1.15}
+.card .pill{
+  position:absolute;inset-inline-end:14px;top:14px;
+  font-family:var(--display);font-size:12px;font-weight:700;
+  border:var(--stroke-2) solid var(--ink);border-radius:var(--r-pill);
+  padding:4px 11px;background:var(--paper-2);
+}
+.t-mint{background:var(--mint)}.t-sun{background:var(--sun)}.t-sky{background:var(--sky);color:#fff}
+.t-coral{background:var(--coral)}.t-grape{background:var(--grape);color:#fff}
+
+/* ── fields ──────────────────────────────────────────── */
+.field{margin-bottom:15px}
+.field > label{display:block;font-family:var(--display);font-weight:700;font-size:14.5px;margin-bottom:7px}
+.inp{
+  width:100%;min-height:54px;padding:13px 16px;
+  font-family:var(--display);font-size:18px;font-weight:600;color:var(--ink);
+  background:var(--card);border:var(--stroke) solid var(--ink);border-radius:var(--r);
+  box-shadow:inset 2px 2px 0 var(--ink-10);
+  transition:box-shadow var(--t),transform var(--t);
+}
+.inp::placeholder{color:var(--ink-45);font-weight:500}
+.inp:focus{outline:none;box-shadow:inset 2px 2px 0 var(--ink-10),var(--shadow-sm);transform:translate(-1px,-1px)}
+.inp.amount{text-align:start;font-size:26px;font-variant-numeric:tabular-nums;letter-spacing:.01em}
+.hint{font-size:12.5px;color:var(--ink-45);margin-top:6px;font-weight:600}
+.hint.bad{color:#C1443C;font-weight:700}
+
+/* member chips */
+.chips{display:flex;gap:10px;overflow-x:auto;padding:3px 2px 9px;scroll-snap-type:x mandatory;scrollbar-width:thin}
+.chip{
+  scroll-snap-align:start;flex:0 0 auto;
+  display:flex;align-items:center;gap:9px;
+  min-height:52px;padding:9px 15px 9px 10px;
+  font-family:var(--display);font-weight:700;font-size:15.5px;
+  background:var(--card);border:var(--stroke) solid var(--ink);border-radius:var(--r-pill);
+  box-shadow:var(--shadow-sm);cursor:pointer;color:var(--ink);
+  transition:transform var(--t-fast) var(--pop),box-shadow var(--t-fast) var(--pop),background var(--t);
+  -webkit-tap-highlight-color:transparent;
+}
+.chip .av{
+  width:32px;height:32px;border-radius:50%;display:grid;place-items:center;
+  border:var(--stroke-2) solid var(--ink);font-size:14px;font-weight:800;
+}
+.chip .p{font-size:13px;color:var(--ink-45);font-variant-numeric:tabular-nums}
+.chip[aria-pressed="true"]{background:var(--mint);transform:var(--press);box-shadow:1px 1px 0 var(--ink)}
+.chip[aria-pressed="true"] .p{color:#0B5B44;font-weight:800}
+.chip:active{transform:var(--press);box-shadow:1px 1px 0 var(--ink)}
+
+/* segmented / options */
+.seg{display:flex;gap:9px;flex-wrap:wrap}
+.seg button{
+  min-height:var(--tap);padding:9px 16px;font-family:var(--display);font-weight:700;font-size:14.5px;
+  background:var(--card);border:var(--stroke-2) solid var(--ink);border-radius:var(--r-pill);cursor:pointer;color:var(--ink);
+  transition:background var(--t),transform var(--t-fast) var(--pop);
+}
+.seg button[aria-pressed="true"]{background:var(--grape);color:#fff;box-shadow:var(--shadow-sm)}
+.seg button:active{transform:var(--press)}
+
+/* ── bottom nav + fab ────────────────────────────────── */
+.navstrip{position:relative;border:var(--stroke) solid var(--ink);border-radius:var(--r);overflow:hidden;background:var(--card);box-shadow:var(--shadow)}
+.bnav{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  height:var(--nav-h);border-top:var(--stroke) solid var(--ink);
+  background:var(--card);
+}
+.bnav button{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  background:none;border:0;cursor:pointer;color:var(--ink-45);
+  font-family:var(--display);font-size:11.5px;font-weight:700;
+  border-inline-start:2px solid var(--ink-10);
+  transition:color var(--t),background var(--t);
+}
+.bnav button:first-child{border-inline-start:0}
+.bnav button svg{width:23px;height:23px}
+.bnav button[aria-current="page"]{color:var(--ink);background:var(--sun)}
+.fab{
+  position:absolute;inset-inline-end:16px;bottom:calc(var(--nav-h) + 16px + var(--safe-b));
+  width:62px;height:62px;border-radius:50%;
+  background:var(--mint);border:var(--stroke) solid var(--ink);
+  box-shadow:var(--shadow);display:grid;place-items:center;cursor:pointer;
+  transition:transform var(--t-fast) var(--pop),box-shadow var(--t-fast) var(--pop);
+}
+.fab:active{transform:var(--press);box-shadow:1px 1px 0 var(--ink)}
+.fab svg{width:28px;height:28px}
+
+/* ── phone frame (360 primary) ───────────────────────── */
+.stage{display:grid;gap:24px;grid-template-columns:1fr}
+.phone{
+  width:100%;max-width:360px;margin-inline:auto;
+  border:4px solid var(--ink);border-radius:36px;background:var(--paper);
+  box-shadow:var(--shadow-lg);overflow:hidden;position:relative;
+  padding-bottom:0;
+}
+.phone .bar{height:30px;background:var(--ink);color:var(--paper);display:flex;align-items:center;justify-content:space-between;padding:0 16px;font-size:11px;font-family:var(--display);font-weight:700}
+.phone .app{height:620px;position:relative;overflow:hidden;background:
+  radial-gradient(var(--ink-10) 1.4px,transparent 1.4px) 0 0/26px 26px, var(--paper)}
+.apphead{padding:16px 16px 6px}
+.apphead .hi{font-size:13px;color:var(--ink-45);font-weight:700}
+.apphead h3{font-size:23px;font-weight:800}
+.mini{display:grid;gap:11px;padding:12px 14px}
+.mini .row{display:flex;align-items:center;gap:11px;background:var(--card);border:var(--stroke) solid var(--ink);border-radius:var(--r);padding:11px 13px;box-shadow:var(--shadow-sm)}
+.mini .row .ico{width:38px;height:38px;flex:0 0 38px;border-radius:12px;border:var(--stroke-2) solid var(--ink);display:grid;place-items:center;font-size:19px}
+.mini .row .t{flex:1;min-width:0}
+.mini .row .t b{display:block;font-family:var(--display);font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mini .row .t span{font-size:12px;color:var(--ink-45);font-weight:600}
+.mini .row .v{font-family:var(--display);font-weight:800;font-size:16.5px;font-variant-numeric:tabular-nums}
+
+/* backdrop + sheet */
+.backdrop{position:absolute;inset:0;background:#221631A6;backdrop-filter:none}
+.sheet{
+  position:absolute;inset-inline:0;bottom:0;
+  background:var(--paper);border-top:4px solid var(--ink);
+  border-radius:var(--r-lg) var(--r-lg) 0 0;
+  max-height:92%;display:flex;flex-direction:column;
+  box-shadow:0 -6px 0 #22163126;
+  animation:sheetUp .34s var(--pop);
+}
+@keyframes sheetUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.sheet .grab{width:52px;height:6px;border-radius:99px;background:var(--ink-20);margin:10px auto 4px}
+.sheet .sh-h{display:flex;align-items:center;justify-content:space-between;padding:6px 16px 10px;border-bottom:2px dashed var(--ink-20)}
+.sheet .sh-h h4{font-size:19px;font-weight:800}
+.sheet .x{width:40px;height:40px;border-radius:50%;border:var(--stroke-2) solid var(--ink);background:var(--card);cursor:pointer;font-size:17px;font-family:var(--display);font-weight:800;line-height:1}
+.sheet .body{padding:14px 16px 4px;overflow-y:auto;overscroll-behavior:contain;flex:1;-webkit-overflow-scrolling:touch}
+.opts{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;
+  min-height:var(--tap);margin-top:4px;padding:11px 15px;
+  background:var(--paper-2);border:var(--stroke-2) solid var(--ink);border-radius:var(--r);
+  font-family:var(--display);font-weight:700;font-size:14.5px;cursor:pointer;color:var(--ink);
+}
+.opts .chev{transition:transform var(--t)}
+/* sticky save */
+.save{
+  border-top:var(--stroke) solid var(--ink);background:var(--card);
+  padding:12px 14px calc(12px + var(--safe-b));
+  display:flex;align-items:center;gap:12px;
+}
+.save .left{flex:1;min-width:0}
+.save .lbl{font-size:12px;font-weight:700;color:var(--ink-45);font-family:var(--display)}
+.save .rem{font-family:var(--display);font-size:19px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.2}
+.save .rem.ok{color:#0B7A5B}
+.save .rem.no{color:#C1443C}
+.save .btn{flex:0 0 auto;min-height:52px;padding-inline:26px}
+
+/* ── empty state + mascot ────────────────────────────── */
+.empty{text-align:center;padding:26px 18px 30px}
+.empty svg{width:140px;height:auto;margin-inline:auto;display:block;filter:drop-shadow(4px 5px 0 var(--ink))}
+.empty h3{font-size:22px;font-weight:800;margin-top:14px}
+.empty p{color:var(--ink-70);font-size:14.5px;margin-top:7px;max-width:34ch;margin-inline:auto}
+.empty .btn{margin-top:18px}
+.wiggle{animation:wg .5s var(--pop)}
+@keyframes wg{0%,100%{transform:rotate(0)}22%{transform:rotate(-6deg)}55%{transform:rotate(5deg)}80%{transform:rotate(-3deg)}}
+
+/* ── motion demo ─────────────────────────────────────── */
+.motion{display:grid;gap:14px;grid-template-columns:1fr}
+.mcard{padding:16px;text-align:center}
+.mcard .lbl{font-family:var(--display);font-weight:700;font-size:14.5px;margin-bottom:12px}
+.mcard code{display:block;margin-top:12px;font-size:12px;direction:ltr;text-align:left;background:var(--paper-2);border:2px dashed var(--ink-20);border-radius:10px;padding:8px 10px;color:var(--ink-70);overflow-x:auto}
+
+/* ── rules ───────────────────────────────────────────── */
+.rules{display:grid;gap:10px}
+.rules li{list-style:none;display:flex;gap:11px;align-items:flex-start;font-size:14.5px;padding:12px 14px;background:var(--card);border:var(--stroke-2) solid var(--ink);border-radius:var(--r-sm);box-shadow:var(--shadow-sm)}
+.rules .ok{flex:0 0 auto;width:24px;height:24px;border-radius:7px;background:var(--mint);border:2px solid var(--ink);display:grid;place-items:center;font-size:13px;font-weight:900;font-family:var(--display)}
+.rules .no{background:var(--coral)}
+.rules b{font-family:var(--display)}
+
+/* ── footer ─────────────────────────────────────────── */
+.tile-foot{
+  margin-top:40px;padding-top:18px;border-top:var(--stroke) solid var(--ink);
+  display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center;
+  font-size:13px;color:var(--ink-45);font-weight:600;
+}
+.tile-foot .d{font-family:var(--display);color:var(--ink);font-weight:800;font-size:15px}
+
+/* ── responsive: mobile-first, desktop is the extra ─── */
+@media (min-width:640px){
+  .cards{grid-template-columns:1fr 1fr}
+  .motion{grid-template-columns:1fr 1fr}
+}
+@media (min-width:900px){
+  .wrap{padding:44px 26px 90px}
+  .stage{grid-template-columns:1fr 1fr;align-items:start}
+  .cards{grid-template-columns:repeat(3,1fr)}
+  .motion{grid-template-columns:repeat(3,1fr)}
+  .sec-t h2{font-size:26px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms!important;transition-duration:.01ms!important}
+  .btn:hover,.chip[aria-pressed="true"]{transform:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="page-h">
+  <div class="badges">
+    <span class="badge b1">P0 · بلاطة أسلوب</span>
+    <span class="badge b2">ستيكر / كوميكس</span>
+    <span class="badge b3">Light only</span>
+    <span class="badge b4">Mobile-first 360px</span>
+  </div>
+  <h1 style="margin-top:16px">SplitEase<br>بطابع كرتوني واضح وسهل.</h1>
+  <p class="lede">كل حاجة هنا مرسومة من 360px لفوق: حدّ 3px بلون الحبر، ظلّ صلب مزاح بدون blur، وزر بيتضغط تحت إصبعك. الشاشة الكبيرة بس توسّع — مش بتغيّر الفكرة.</p>
+</header>
+
+<main id="main">
+
+<!-- ══ 1. PALETTE ══ -->
+<section class="sec">
+  <div class="sec-t"><span class="n">١</span><div><h2>الألوان</h2><p>ورق كريمي + حبر بنفسجي غامق + 5 شِبس</p></div></div>
+  <div class="stk panel">
+    <div class="swatches">
+      <div class="sw"><div class="c" style="background:#FFF8EC"></div><div class="m"><b>paper</b><span>#FFF8EC</span></div></div>
+      <div class="sw"><div class="c" style="background:#221631"></div><div class="m"><b>ink</b><span>#221631</span></div></div>
+      <div class="sw"><div class="c" style="background:#FFD23F"></div><div class="m"><b>sun</b><span>#FFD23F</span></div></div>
+      <div class="sw"><div class="c" style="background:#FF6B6B"></div><div class="m"><b>coral</b><span>#FF6B6B</span></div></div>
+      <div class="sw"><div class="c" style="background:#3DDC97"></div><div class="m"><b>mint</b><span>#3DDC97</span></div></div>
+      <div class="sw"><div class="c" style="background:#4D9DE0"></div><div class="m"><b>sky</b><span>#4D9DE0</span></div></div>
+      <div class="sw"><div class="c" style="background:#9B5DE5"></div><div class="m"><b>grape</b><span>#9B5DE5</span></div></div>
+    </div>
+    <ul class="use">
+      <li><b>mint</b> = الإجراء الأساسي (حفظ، إضافة) · <b>sun</b> = ثانوي وتنبيه لطيف · <b>coral</b> = حذف وخطأ</li>
+      <li><b>sky</b> و<b>grape</b> = تمييز (مصروف شخصي مقابل شلة، تبويبات) — لازم عليهم <b>نص أبيض</b> للتباين</li>
+      <li>النص على الألوان الفاتحة دايمًا <b>ink</b> مش أبيض · الحبر بديل الأسود (أسهل على العين)</li>
+      <li>درجات رمادية = شفافيات من <b>ink</b> بس — مفيش رمادي مستقل يضيّع الألوان</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ══ 2. TYPE ══ -->
+<section class="sec">
+  <div class="sec-t"><span class="n">٢</span><div><h2>الخطوط</h2><p>Baloo Bhaijaan 2 للعرض · Cairo للنص</p></div></div>
+  <div class="stk panel">
+    <div class="typerow"><span class="k">DISPLAY / H1</span><span class="d" style="font-size:clamp(30px,7vw,46px);font-weight:800">شلتك مرتاحة</span><span class="s">46 / 800</span></div>
+    <div class="typerow"><span class="k">H2 · عنوان قسم</span><span class="d" style="font-size:26px;font-weight:800">آخر المصاريف</span><span class="s">26 / 800</span></div>
+    <div class="typerow"><span class="k">H3 · عنوان كارت</span><span class="d" style="font-size:17.5px">عشا الجمعة</span><span class="s">17.5 / 700</span></div>
+    <div class="typerow"><span class="k">MONEY · أرقام</span><span class="num" style="font-size:32px">1,240.50</span><span class="s">tabular-nums</span></div>
+    <div class="typerow"><span class="k">BODY · نص</span><span class="d" style="font-family:var(--body);font-size:15px;font-weight:400">سجّل مصروفك وأنت ماشي — الميزانية بتحسب لوحدها.</span><span class="s">Cairo 15</span></div>
+    <div class="typerow"><span class="k">LABEL · ليتل</span><span class="d" style="font-size:14.5px">مين دفع؟</span><span class="s">14.5 / 700</span></div>
+  </div>
+</section>
+
+<!-- ══ 3. BUTTONS ══ -->
+<section class="sec">
+  <div class="sec-t"><span class="n">٣</span><div><h2>الأزرار</h2><p>كلها ≥52px · بتنزل 3×4 عند الضغط</p></div></div>
+  <div class="stk panel">
+    <div class="btn-row">
+      <button class="btn pri" type="button">＋ ضيف مصروف</button>
+      <button class="btn sce" type="button">اعمل شلتك</button>
+      <button class="btn ter" type="button">تخطّي</button>
+      <button class="btn dgr" type="button">احذف</button>
+      <button class="btn pri" type="button" disabled>حفظ</button>
+    </div>
+    <p class="hint">الزر المقفول (disabled) بيوضح السبب جنبه — مثلاً «متبقي 20» — بدل ما يفضل صامت.</p>
+    <div class="btn-row" style="margin-top:14px">
+      <button class="btn sm sce" type="button">صغير · إجراء ثانوي</button>
+      <button class="btn wide pri" type="button">عرض كامل للعرض فقط</button>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 4. CARDS ══ -->
+<section class="sec">
+  <div class="sec-t"><span class="n">٤</span><div><h2>الكروت</h2><p>حد + ظل مزاح · ما في رمادي ولا blur</p></div></div>
+  <div class="cards">
+    <div class="stk card">
+      <span class="pill t-mint">شلة</span>
+      <div class="top"><span class="ico t-sun">🍔</span><div><h3>شلة المعهد</h3><div class="sub">6 أعضاء · آخر مصروف النهاردة</div></div></div>
+      <div class="big">775.00</div>
+      <div class="sub" style="margin-top:4px">نصيتك <b class="num">193.75</b></div>
+    </div>
+    <div class="stk card">
+      <span class="pill t-sky">شخصي</span>
+      <div class="top"><span class="ico t-grape">🛒</span><div><h3>سوق الشهر</h3><div class="sub">الفاتورة · 12 سبتمبر</div></div></div>
+      <div class="big">430.00</div>
+      <div class="sub" style="margin-top:4px">باقي من الميزانية <b class="num">1,570.00</b></div>
+    </div>
+    <div class="stk card">
+      <span class="pill t-coral">انتهى</span>
+      <div class="top"><span class="ico t-coral">⏰</span><div><h3>ذكّر واحد</h3><div class="sub">اشتراكك خلص من 3 أيام</div></div></div>
+      <div class="big">−20.00</div>
+      <div class="sub" style="margin-top:4px">ابعتله رسالة واتساب</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 5. FIELDS ══ -->
+<section class="sec">
+  <div class="sec-t"><span class="n">٥</span><div><h2>الحقول والشِبس</h2><p>لوحة الأرقام تفتح أوتوماتيك · الأهداف ≥48px</p></div></div>
+  <div class="stk panel" style="display:grid;gap:18px">
+    <div>
+      <div class="field">
+        <label for="t1">المبلغ</label>
+        <input class="inp amount" id="t1" inputmode="decimal" type="text" placeholder="0.00" value="420.00">
+        <div class="hint">يقبل <b>٠-٩</b> و<b>0-9</b> والنقطة</div>
+      </div>
+      <div class="field">
+        <label for="t2">وصف المصروف</label>
+        <input class="inp" id="t2" type="text" placeholder="عشا الجمعة" value="عشا الجمعة">
+      </div>
+      <div class="field">
+        <label>مين دفع؟ <span style="color:var(--ink-45);font-weight:600">(اختَر واحد أو أكتر)</span></label>
+        <div class="chips" id="chips">
+          <button class="chip" type="button" aria-pressed="true"><span class="av" style="background:var(--mint)">ش</span> شادي <span class="p">420</span></button>
+          <button class="chip" type="button" aria-pressed="false"><span class="av" style="background:var(--sun)">م</span> مريم <span class="p">0</span></button>
+          <button class="chip" type="button" aria-pressed="false"><span class="av" style="background:var(--sky);color:#fff">ك</span> كريم <span class="p">0</span></button>
+          <button class="chip" type="button" aria-pressed="false"><span class="av" style="background:var(--grape);color:#fff">ر</span> رنا <span class="p">0</span></button>
+        </div>
+        <div class="hint">شريط أفقي بتمرير — مفيش شبكة 2 عمود بتعمل 8 صفوف على الجوال</div>
+      </div>
+      <div class="field">
+        <label>خيارات إضافية <span style="color:var(--ink-45);font-weight:600">(مطوية)</span></label>
+        <div class="seg">
+          <button type="button" aria-pressed="true">تقسيم متساوي</button>
+          <button type="button" aria-pressed="false">بنسبة</button>
+          <button type="button" aria-pressed="false">مبلغ محدد</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 6. STAGE: phone + nav ══ -->
+<section class="sec">
+  <div class="sec-t"><span class="n">٦</span><div><h2>الشاشة على 360px</h2><p>Bottom sheet + شريط حفظ لاصق فوق الـsafe-area</p></div></div>
+  <div class="stage">
+
+    <!-- phone -->
+    <div class="phone">
+      <div class="bar"><span>9:41</span><span>شلة المعهد · 6</span></div>
+      <div class="app">
+        <div class="apphead">
+          <div class="hi">مساء الخير 👋</div>
+          <h3>شلتك النهاردة</h3>
+        </div>
+        <div class="mini">
+          <div class="row"><span class="ico t-sun">🍔</span><div class="t"><b>عشا الجمعة</b><span>شادي دفع · 6 أعضاء</span></div><span class="v">420</span></div>
+          <div class="row"><span class="ico t-grape">🎬</span><div class="t"><b>سينما</b><span>مريم دفعت</span></div><span class="v">260</span></div>
+          <div class="row"><span class="ico t-sky">🚕</span><div class="t"><b>أوبر الرجعة</b><span>كريم دفع</span></div><span class="v">95</span></div>
+        </div>
+
+        <div class="backdrop"></div>
+        <div class="sheet" role="dialog" aria-label="مصروف جديد">
+          <div class="grab"></div>
+          <div class="sh-h"><h4>مصروف جديد</h4><button class="x" type="button" aria-label="إغلاق">✕</button></div>
+          <div class="body">
+            <div class="field">
+              <label for="a1">المبلغ</label>
+              <input class="inp amount" id="a1" inputmode="decimal" type="text" placeholder="0.00" value="420.00">
+            </div>
+            <div class="field">
+              <label for="a2">وصف المصروف</label>
+              <input class="inp" id="a2" type="text" placeholder="إيه هو؟" value="عشا الجمعة">
+            </div>
+            <div class="field">
+              <label>مين دفع؟</label>
+              <div class="chips" data-live>
+                <button class="chip" type="button" aria-pressed="true"><span class="av" style="background:var(--mint)">ش</span> شادي</button>
+                <button class="chip" type="button" aria-pressed="false"><span class="av" style="background:var(--sun)">م</span> مريم</button>
+                <button class="chip" type="button" aria-pressed="false"><span class="av" style="background:var(--sky);color:#fff">ك</span> كريم</button>
+                <button class="chip" type="button" aria-pressed="false"><span class="av" style="background:var(--grape);color:#fff">ر</span> رنا</button>
+              </div>
+            </div>
+            <button class="opts" type="button"><span>خيارات · تاريخ وفئة وتقسيم</span><span class="chev">▾</span></button>
+            <div style="height:8px"></div>
+          </div>
+          <div class="save">
+            <div class="left">
+              <div class="lbl">متبقي من المبلغ</div>
+              <div class="rem ok" id="rem">✅ متطابق — 420 / 420</div>
+            </div>
+            <button class="btn pri" type="button" id="saveBtn">حفظ</button>
+          </div>
+        </div>
+      </div>
+      <div class="navstrip" style="border:0;border-top:4px solid var(--ink);border-radius:0;box-shadow:none">
+        <div class="bnav">
+          <button type="button" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>الرئيسية</button>
+          <button type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>الشل</button>
+          <button type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>أنا</button>
+          <button type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.56V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.11-1.56 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1H3a2 2 0 1 1 0-4h.1A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.56V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9v.1a1.7 1.7 0 0 0 1.56 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>الإعدادات</button>
+        </div>
+      </div>
+      <button class="fab" type="button" style="bottom:calc(var(--nav-h) + 16px)" aria-label="إضافة مصروف">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#221631" stroke-width="3.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+    </div>
+
+    <!-- rules next to it -->
+    <div style="display:grid;gap:16px">
+      <div class="stk panel">
+        <h3 style="font-size:18px;margin-bottom:10px">ليه الشيت مش مودال؟</h3>
+        <div class="rules">
+          <li><span class="ok">✓</span><span>بينزل من تحت = الإبهام تحت، وزرار الحفظ <b>لاصق فوق الـsafe-area</b> دايمًا.</span></li>
+          <li><span class="ok">✓</span><span><b>max-height 92dvh</b> + <code style="direction:ltr">overscroll-behavior:contain</code> → الصفحة ورا ما بتتمرّرش بالغلط.</span></li>
+          <li><span class="ok">✓</span><span>حقل المبلغ عليه <b>inputmode="decimal"</b> → لوحة الأرقام تفتح من أول تفاعل.</span></li>
+          <li><span class="ok">✓</span><span>الشِبس شريط أفقي بتمرير — مش شبكة بتولّد 8 صفوف.</span></li>
+          <li><span class="ok">✓</span><span>«خيارات» مطوية: التاريخ والفئة والتقسيم مش بيبانوا غير لما تحتاجهم.</span></li>
+          <li><span class="ok no">✕</span><span>مفيش <b>blur</b> ولا ظلال ناعمة — الستيكر بيقرأ أوضح وأخف على الجوال.</span></li>
+        </div>
+      </div>
+      <div class="stk panel">
+        <h3 style="font-size:18px;margin-bottom:10px">الـ4 عناصر — نفسهم على الجوال والديسكتوب</h3>
+        <div class="seg" style="gap:8px">
+          <button type="button" aria-pressed="true">الرئيسية</button>
+          <button type="button" aria-pressed="false">الشل</button>
+          <button type="button" aria-pressed="false">أنا</button>
+          <button type="button" aria-pressed="false">الإعدادات</button>
+        </div>
+        <p class="hint">مصدر واحد في الـJS يبني الـsidebar (≥769px) والـbottom-nav (≤768px) — مفيش 7 ضد 5 تاني.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 7. EMPTY STATE + MASCOT ══ -->
+<section class="sec">
+  <div class="sec-t"><span class="n">٧</span><div><h2>الشخصية والحالات الفاضية</h2><p>مرسومة بنفس الحبر 3px — تشتغل من 100px لـ200px</p></div></div>
+  <div class="cards">
+    <div class="stk empty">
+      <!-- mascot: receipt friend -->
+      <svg viewBox="0 0 140 132" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="شخصية إيصال مبتسمة">
+        <g stroke="#221631" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+          <path d="M30 22h80v78l-9-7-9 7-9-7-9 7-9-7-9 7-9-7-9 7-8-6z" fill="#FFD23F"/>
+          <path d="M30 22c0-6 5-11 11-11h58c6 0 11 5 11 11" fill="#FFD23F"/>
+          <path d="M46 8h48" stroke-width="5"/>
+          <circle cx="55" cy="47" r="7.5" fill="#FFFFFF"/>
+          <circle cx="85" cy="47" r="7.5" fill="#FFFFFF"/>
+          <circle cx="57" cy="49" r="3.4" fill="#221631" stroke="none"/>
+          <circle cx="87" cy="49" r="3.4" fill="#221631" stroke="none"/>
+          <path d="M58 63c4 6 20 6 24 0" fill="none" stroke-width="4"/>
+          <path d="M30 60c-9 2-15 8-17 16" fill="none"/>
+          <path d="M110 60c9 2 15 8 17 16" fill="none"/>
+          <circle cx="11" cy="80" r="7" fill="#3DDC97"/>
+          <circle cx="129" cy="80" r="7" fill="#FF6B6B"/>
+          <path d="M55 78h30" stroke-width="4"/>
+        </g>
+        <circle cx="46" cy="60" r="5" fill="#FF6B6B" opacity=".55"/>
+        <circle cx="94" cy="60" r="5" fill="#FF6B6B" opacity=".55"/>
+      </svg>
+      <h3>لسه مافيش شلة</h3>
+      <p>اعمل غرفتك بالاسم وكلمة السر، وبعدين ابعتها لصحابك.</p>
+      <button class="btn pri" type="button">اعمل شلتك — دقيقة واحدة</button>
+    </div>
+    <div class="stk empty" id="errCard">
+      <!-- error pose -->
+      <svg viewBox="0 0 140 132" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="شخصية غاضبة قليلاً" style="transform:rotate(-4deg)">
+        <g stroke="#221631" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+          <path d="M30 22h80v78l-9-7-9 7-9-7-9 7-9-7-9 7-9-7-8 6z" fill="#FF6B6B"/>
+          <path d="M44 40l12 6M96 40l-12 6" stroke-width="4.5"/>
+          <circle cx="55" cy="55" r="7.5" fill="#FFFFFF"/>
+          <circle cx="85" cy="55" r="7.5" fill="#FFFFFF"/>
+          <circle cx="54" cy="57" r="3.4" fill="#221631" stroke="none"/>
+          <circle cx="84" cy="57" r="3.4" fill="#221631" stroke="none"/>
+          <path d="M58 74c5-5 19-5 24 0" fill="none"/>
+          <path d="M30 62c-8 4-13 11-14 19" fill="none"/>
+          <path d="M110 62c8 4 13 11 14 19" fill="none"/>
+        </g>
+      </svg>
+      <h3>المجموع مش متساوي</h3>
+      <p>المدفوع 400 والمبلغ 420 — فاضل <b class="num">20</b> قبل الحفظ.</p>
+      <button class="btn dgr" type="button" id="wigBtn">رجّعها</button>
+    </div>
+    <div class="stk empty" style="background:var(--sun)">
+      <svg viewBox="0 0 140 132" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="شخصية تحتفل">
+        <g stroke="#221631" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+          <path d="M30 22h80v78l-9-7-9 7-9-7-9 7-9-7-9 7-9-7-8 6z" fill="#3DDC97"/>
+          <path d="M46 44l10 5M94 44l-10 5"/>
+          <circle cx="55" cy="56" r="7.5" fill="#FFFFFF"/><circle cx="85" cy="56" r="7.5" fill="#FFFFFF"/>
+          <circle cx="57" cy="57" r="3.4" fill="#221631" stroke="none"/><circle cx="87" cy="57" r="3.4" fill="#221631" stroke="none"/>
+          <path d="M56 72c5 8 23 8 28 0" fill="none"/>
+          <path d="M30 58c-10-4-16-13-16-24" fill="none"/>
+          <path d="M110 58c10-4 16-13 16-24" fill="none"/>
+          <path d="M14 34l-6-8M126 34l6-8" stroke-width="3.5"/>
+        </g>
+      </svg>
+      <h3>اتفقوا! 🎉</h3>
+      <p>الأرصدة اتصفّت — مريم ردّت 112 لشادي.</p>
+      <button class="btn sce" type="button">شوف التفاصيل</button>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 8. MOTION ══ -->
+<section class="sec">
+  <div class="sec-t"><span class="n">٨</span><div><h2>الحركة</h2><p>نابضة واحدة بس — ناعمة، مش مزعجة</p></div></div>
+  <div class="motion">
+    <div class="stk mcard">
+      <div class="lbl">اضغط أي زر تحت</div>
+      <button class="btn pri" type="button">جرّب اضغطني</button>
+      <code>transform: translate(3px,4px)
+box-shadow: 1px 1px 0 var(--ink)
+transition: var(--t-fast) var(--pop)</code>
+    </div>
+    <div class="stk mcard">
+      <div class="lbl">الشِبس المختار</div>
+      <div class="chips" style="justify-content:center" data-live>
+        <button class="chip" type="button" aria-pressed="true"><span class="av" style="background:var(--mint)">ش</span> شادي</button>
+        <button class="chip" type="button" aria-pressed="false"><span class="av" style="background:var(--sun)">م</span> مريم</button>
+      </div>
+      <code>الضغط = خلفية mint + ظل يختفي
++ aria-pressed يتحدّث</code>
+    </div>
+    <div class="stk mcard">
+      <div class="lbl">الاهتزاز عند الخطأ</div>
+      <button class="btn dgr" type="button" id="wig2">سوّيها ترتج</button>
+      <code>@keyframes wg { rotate -6° → 5° → 0 }
+.duration .5s · var(--pop)</code>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 9. RULES ══ -->
+<section class="sec">
+  <div class="sec-t"><span class="n">٩</span><div><h2>قواعد ثابتة</h2><p>هاتنفّذ على طول في P1–P6</p></div></div>
+  <div class="stk panel">
+    <div class="rules">
+      <li><span class="ok">✓</span><span><b>Mobile-first:</b> الـCSS يبدأ من 360px بـ<code style="direction:ltr">min-width</code> — الديسكتوب توسّع مش أساس.</span></li>
+      <li><span class="ok">✓</span><span><b>حدّ 3px + ظل مزاح 4×5</b> على كل كارت وزر — مفيش blur ولا ظلال ناعمة.</span></li>
+      <li><span class="ok">✓</span><span><b>هدف لمس ≥48px</b> لكل زر وحقل وشِبس · زر الأساسي ≥52px.</span></li>
+      <li><span class="ok">✓</span><span><b>safe-area</b> على الـFAB وشيت وشريط الحفظ (<code style="direction:ltr">env(safe-area-inset-*)</code>).</span></li>
+      <li><span class="ok">✓</span><span><b>inputmode="decimal"</b> على كل حقل مبلغ + قبول ٠-٩ قبل التحقق.</span></li>
+      <li><span class="ok">✓</span><span><b>4 عناصر nav</b> من مصدر واحد — نفسهم جوال وديسكتوب.</span></li>
+      <li><span class="ok">✓</span><span><b>مفتاح حفظ واحد مقفول</b> لحد ما المجاميع تتساوي — مش إنذار تحت.</span></li>
+      <li><span class="ok">✓</span><span><b>الإيموجي</b> بس كرسمة ≥32px في الـempty states — أيقونة الـUI كلها SVG مدوّنة stroke 2.4.</span></li>
+      <li><span class="ok no">✕</span><span><b>ممنوع:</b> dark mode · رمادي مستقل · <code style="direction:ltr">backdrop-filter:blur</code> · حدود أقل من 2px.</span></li>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="tile-foot">
+  <span class="d">SplitEase · P0 بلاطة الأسلوب</span>
+  <span>ستيكر/كوميكس · light-only · mobile-first 360px — للمراجعة قبل تنفيذ P1</span>
+</footer>
+
+</div>
+
+<script>
+(function(){
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // chips: single/multi select + aria-pressed
+  document.querySelectorAll('[data-live], #chips').forEach(function(box){
+    box.addEventListener('click', function(e){
+      var c = e.target.closest('.chip'); if(!c) return;
+      c.setAttribute('aria-pressed', c.getAttribute('aria-pressed') === 'true' ? 'false' : 'true');
+    });
+  });
+
+  // segmented groups
+  document.querySelectorAll('.seg').forEach(function(box){
+    box.addEventListener('click', function(e){
+      var b = e.target.closest('button'); if(!b) return;
+      box.querySelectorAll('button').forEach(function(x){ x.setAttribute('aria-pressed','false'); });
+      b.setAttribute('aria-pressed','true');
+    });
+  });
+
+  // bottom nav current
+  document.querySelectorAll('.bnav').forEach(function(box){
+    box.addEventListener('click', function(e){
+      var b = e.target.closest('button'); if(!b) return;
+      box.querySelectorAll('button').forEach(function(x){ x.removeAttribute('aria-current'); });
+      b.setAttribute('aria-current','page');
+    });
+  });
+
+  // live remaining calculation (payer chips ↔ amount)
+  var amount = document.getElementById('a1');
+  var rem = document.getElementById('rem');
+  var saveBtn = document.getElementById('saveBtn');
+  var live = document.querySelector('[data-live]');
+  function recalc(){
+    if(!amount || !rem || !live) return;
+    var total = parseFloat(amount.value.replace('٫','.').replace(/[٠-٩]/g, function(d){
+      return '٠١٢٣٤٥٦٧٨٩'.indexOf(d);
+    })) || 0;
+    var picked = live.querySelectorAll('.chip[aria-pressed="true"]').length;
+    var paid = picked ? total : 0;               // equal-split default: selected payers cover it
+    var left = Math.round((total - paid) * 100) / 100;
+    if (total > 0 && left === 0){
+      rem.className = 'rem ok';
+      rem.textContent = '✅ متطابق — ' + total + ' / ' + total;
+      if (saveBtn) { saveBtn.disabled = false; }
+    } else {
+      rem.className = 'rem no';
+      rem.textContent = total === 0 ? 'اكتب المبلغ الأول' : 'متبقي: ' + Math.abs(left);
+      if (saveBtn) { saveBtn.disabled = true; }
+    }
+  }
+  if (amount) amount.addEventListener('input', recalc);
+  if (live) live.addEventListener('click', function(){ setTimeout(recalc, 0); });
+  recalc();
+
+  // wiggle demos
+  ['wigBtn','wig2'].forEach(function(id){
+    var b = document.getElementById(id); if(!b) return;
+    b.addEventListener('click', function(){
+      if (reduce) return;
+      var target = id === 'wig2' ? b.closest('.stk') : document.getElementById('errCard');
+      target.classList.remove('wiggle'); void target.offsetWidth; target.classList.add('wiggle');
+    });
+  });
+})();
+</script>
+</body>
+</html>

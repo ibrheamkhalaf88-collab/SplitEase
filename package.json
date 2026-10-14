@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "test": "node --test",
-    "check": "node --check js/app.js && node --check js/cloud.js && node --check js/cloud-ui.js && node --check sw.js",
+    "check": "node --check js/app.js && node --check js/cloud.js && node --check js/cloud-ui.js && node --check js/onboarding.js && node --check sw.js",
     "icons": "node scripts/generate-icons.mjs",
     "db:push": "supabase db push",
     "db:reset": "supabase db reset"

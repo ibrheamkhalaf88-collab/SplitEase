@@ -708,10 +708,13 @@
       showModalSafe('دعوة الأصدقاء', `
         <div style="text-align:center">
           <p style="font-size:13px;color:var(--text-muted)">ابعت الكود ده لأصحابك — صالح أسبوع، أو ٢٠ واحد، ولينفع تلغيه</p>
-          <div class="qr-link" id="invCode" style="font-size:28px;font-weight:800;letter-spacing:4px;margin:12px 0">${esc(code)}</div>
-          <button class="btn btn-primary" onclick="CloudUI.copyCode('${code}')">📋 نسخ الكود</button>
-          <button class="btn btn-ghost" onclick="CloudUI.copyLink('${esc(link)}')">🔗 نسخ الرابط</button>
-        </div>`);
+          <div class="qr-container" style="display:flex;flex-direction:column;align-items:center;gap:10px;margin-top:16px">
+            <div class="qr-code" id="qrCode" style="width:200px;height:200px"></div>
+            <div class="qr-link" id="invCode" style="font-size:28px;font-weight:800;letter-spacing:4px;margin:4px 0">${esc(code)}</div>
+            <button class="btn btn-primary" onclick="CloudUI.copyCode('${code}')">📋 نسخ الكود</button>
+            <button class="btn btn-ghost" onclick="CloudUI.copyLink('${esc(link)}')">🔗 نسخ الرابط</button>
+          </div>`);
+      if (window.generateQR) window.generateQR(link);
     },
     copyLink(link) {
       const text = link || (document.getElementById('invLink') || {}).textContent || '';

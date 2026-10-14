@@ -318,7 +318,7 @@ test('manifest is valid and every icon exists on disk', () => {
 });
 
 test('every service worker precache entry exists', () => {
-  const assets = [...SW.matchAll(/'\.\/([^']+)'/g)].map(m => m[1]).filter(p => p && !p.startsWith('js/') === false || true);
+  const assets = [...SW.matchAll(/'\.\/([^'#][^']*)'/g)].map(m => m[1]).filter(p => p && !p.startsWith('js/') === false || true);
   const paths = assets.map(a => a === '' ? 'index.html' : a);
   assert.ok(paths.length >= 15, `expected a full shell precache, found ${paths.length}`);
   for (const p of paths) {
@@ -445,14 +445,136 @@ test('hidden elements stay hidden despite component display rules', () => {
  * ────────────────────────────────────────────────────────────────────────── */
 
 test('all first-party scripts parse', () => {
-  for (const f of ['js/app.js', 'js/cloud.js', 'js/cloud-ui.js', 'js/supabase-config.js', 'sw.js', 'scripts/generate-icons.mjs']) {
+  for (const f of ['js/app.js', 'js/cloud.js', 'js/cloud-ui.js', 'js/onboarding.js', 'js/supabase-config.js', 'sw.js', 'scripts/generate-icons.mjs']) {
     execFileSync(process.execPath, ['--check', join(ROOT, f)], { stdio: 'pipe' });
   }
 });
 
 test('source files are valid utf-8 with no replacement characters', () => {
-  for (const f of ['index.html', 'js/app.js', 'js/cloud.js', 'js/cloud-ui.js', 'css/style.css', 'supabase/migrations/0001_init.sql']) {
+  for (const f of ['index.html', 'js/app.js', 'js/cloud.js', 'js/cloud-ui.js', 'js/onboarding.js', 'css/style.css', 'supabase/migrations/0001_init.sql']) {
     const text = read(f);
     assert.ok(!text.includes('\uFFFD'), `${f} contains U+FFFD (mojibake)`);
   }
+});
+
+/* ──────────────────────────────────────────────────────────────────────────
+ * 8. Onboarding coachmarks
+ * ---------------------------------------------------------------------- */
+
+const TOUR = read('js/onboarding.js');
+
+test('the tour is wired into the shell and precached', () => {
+  assert.match(HTML, /<script src="js\/onboarding\.js">/);
+  // It reads t() from app.js, so it has to load after it.
+  const order = [...HTML.matchAll(/<script[^>]+src="js\/([^"]+)"/g)].map(m => m[1]);
+  assert.ok(order.indexOf('onboarding.js') > order.indexOf('app.js'),
+    'onboarding.js must load after app.js (it uses t()/toast())');
+  assert.ok(SW.includes("'./js/onboarding.js'"), 'sw.js does not precache the tour');
+});
+
+test('the tour runs once and can be replayed from settings', () => {
+  // The flag is written on finish AND on skip — a dismissed tour that
+  // keeps coming back is worse than no tour.
+  assert.match(TOUR, /localStorage\.getItem\(STORAGE_KEY\) === '1'/);
+  assert.match(TOUR, /localStorage\.setItem\(STORAGE_KEY, '1'\)/);
+  assert.match(TOUR, /function markCompleted/);
+  assert.match(TOUR, /markCompleted\(\);/);
+  // Replay path: reset + start, exposed globally for the settings button.
+  assert.match(TOUR, /window\.Onboarding = \{/);
+  assert.match(APP, /function replayTour\(\)/);
+  assert.match(APP, /onclick="replayTour\(\)"/);
+  assert.match(APP, /Onboarding\.reset\(\);\s*\n?\s*window\.Onboarding\.start\(\)/);
+});
+
+test('every tour step has copy, and every targeted step has a selector', () => {
+  const ids = [...TOUR.matchAll(/^\s{6}id: '([^']+)',/gm)].map(m => m[1]);
+  assert.ok(ids.length >= 4, `expected a real multi-step tour, found ${ids.length}`);
+  assert.equal(new Set(ids).size, ids.length, 'duplicate step id');
+  // Bookends are centred dialogs; everything between them must point at
+  // something real, otherwise the ring highlights empty space.
+  const stepBlocks = [...TOUR.matchAll(/\{\s*\n\s*id: '[^']+',[\s\S]*?\n {4}\},/g)].map(m => m[0]);
+  assert.equal(stepBlocks.length, ids.length, 'a step block did not parse');
+  for (const block of stepBlocks) {
+    assert.match(block, /title: tr\(/, `step without a title: ${block.slice(0, 60)}`);
+    assert.match(block, /body: tr\(/, `step without a body: ${block.slice(0, 60)}`);
+    // New structure: centered steps have type: 'centered', others have targetSel
+    const isCentered = /type:\s*['"]centered['"]/.test(block);
+    const isInput = /type:\s*['"]input['"]/.test(block);
+    if (!isCentered && !isInput) {
+      assert.match(block, /targetSel:\s*['"]/, `action step without targetSel: ${block.slice(0, 60)}`);
+    }
+  }
+  // Every selector a step points at must exist somewhere it claims: static
+  // ids in the shell, plus the ids the views render at runtime.
+  const realIds = new Set([
+    ...[...HTML.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]),
+    ...[...APP.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]),
+  ]);
+  for (const m of TOUR.matchAll(/targetSel:\s*['"]([^'"]+)['"]/g)) {
+    const sel = m[1];
+    const id = sel.match(/^#([\w-]+)$/);
+    if (id) assert.ok(realIds.has(id[1]), `tour points at #${id[1]}, which index.html does not define`);
+  }
+});
+
+test('a tour step whose target is missing is skipped, never shown empty', () => {
+  // New structure: action steps in renderAction check hit and skip to next
+  assert.match(TOUR, /if \(!hit\) \{/);
+  assert.match(TOUR, /return go\(index \+ 1\);/);
+  // Also verify centered/input steps don't have this issue (they don't use targets)
+  assert.match(TOUR, /type:\s*['"]centered['"]/);
+  assert.match(TOUR, /type:\s*['"]input['"]/);
+});
+
+test('the tour respects reduced motion and traps its own focus', () => {
+  assert.match(TOUR, /prefers-reduced-motion: reduce/);
+  assert.match(read('css/style.css'), /\.tour-ring \{[^}]*animation: none/);
+  assert.match(TOUR, /setAttribute\('aria-modal', 'true'\)/);
+  assert.match(TOUR, /function trapFocus/);
+});
+
+test('the scroll lock keeps the gutter so the highlight does not shift', () => {
+  // overflow:hidden removes the scrollbar, which would slide the target
+  // sideways mid-step. Reserve the space instead.
+  assert.match(read('css/style.css'), /scrollbar-gutter: stable/);
+  assert.match(TOUR, /classList\.add\('tour-open'\)/);
+  assert.match(TOUR, /classList\.remove\('tour-open'\)/);
+});
+
+/* ──────────────────────────────────────────────────────────────────────────
+ * 9. PWA Install & Offline Support
+ * ────────────────────────────────────────────────────────────────────────── */
+
+test('manifest has installable PWA configuration', () => {
+  assert.equal(MANIFEST.display, 'standalone');
+  assert.ok(MANIFEST.display_override?.includes('standalone'));
+  assert.ok(MANIFEST.icons.some(i => i.purpose === 'maskable'));
+  assert.ok(MANIFEST.shortcuts?.length >= 2);
+  assert.match(MANIFEST.start_url, /^\.\//);
+});
+
+test('app registers beforeinstallprompt and has install prompt logic', () => {
+  assert.match(APP, /beforeinstallprompt/);
+  assert.match(APP, /deferredInstallPrompt/);
+  assert.match(APP, /function promptInstall/);
+  assert.match(APP, /navigator\.userAgent.*iPad|iPhone|iPod/); // iOS instructions
+});
+
+test('online/offline indicator is set up', () => {
+  assert.match(APP, /function setupOnlineIndicator/);
+  assert.match(APP, /onlineIndicator/);
+  assert.match(APP, /navigator\.onLine/);
+  assert.match(APP, /window\.addEventListener\(['\"]online['\"]/);
+  assert.match(APP, /window\.addEventListener\(['\"]offline['\"]/);
+});
+
+test('service worker uses allSettled for resilient precaching', () => {
+  assert.match(SW_CODE, /Promise\.allSettled/);
+  assert.doesNotMatch(SW_CODE, /cache\.addAll\(/);
+  assert.match(SW_CODE, /CACHE_NAME = 'splitease-v\d+'/);
+});
+
+test('app requests persistent storage', () => {
+  assert.match(APP, /navigator\.storage\.persist/);
+  assert.match(APP, /navigator\.storage\.persisted/);
 });

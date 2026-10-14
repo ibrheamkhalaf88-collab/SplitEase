@@ -9,45 +9,45 @@
    gradients). Never use them for small text — use *-text instead.
    ============================================================ */
 :root {
-  /* Brand — fills */
-  --primary: #0D9488;
-  --primary-light: #14B8A6;
-  --primary-dark: #0F766E;
-  --primary-strong: #0A6B63;      /* button fill: white text = 6.37:1 */
-  --primary-strong-2: #0E8279;
-  --primary-glow: rgba(13, 148, 136, 0.3);
+  /* Brand — fills (Green theme) */
+  --primary: #166534;        /* Dark green - main brand */
+  --primary-light: #22C55E;  /* Lighter green */
+  --primary-dark: #15803D;   /* Darker green */
+  --primary-strong: #14532D; /* button fill: white text = 6.37:1 */
+  --primary-strong-2: #166534;
+  --primary-glow: rgba(22, 101, 52, 0.3);
   --on-primary: #FFFFFF;
 
-  --accent: #F97066;
-  --accent-light: #FDA29B;
-  --accent-dark: #C1443C;
-  --accent-strong: #C1443C;       /* button fill: white text = 5.05:1 */
-  --accent-strong-2: #AD3B34;
+  --accent: #84CC16;         /* Lime green accent */
+  --accent-light: #A3E635;
+  --accent-dark: #65A30D;
+  --accent-strong: #65A30D;  /* button fill: white text = 5.05:1 */
+  --accent-strong-2: #4D7C0F;
 
-  /* Surfaces */
-  --bg: #F0F4F8;
-  --bg-card: rgba(255, 255, 255, 0.78);
-  --bg-card-solid: #FFFFFF;
-  --bg-nav: rgba(255, 255, 255, 0.88);
+  /* Surfaces (Beige theme) */
+  --bg: #F5F0E1;             /* Warm beige background */
+  --bg-card: #FDFBF7;        /* Off-white card background */
+  --bg-card-solid: #FDFBF7;
+  --bg-nav: #F9F4E8;         /* Slightly darker beige for nav */
   --bg-overlay: rgba(15, 23, 42, 0.45);
   --bg-input: #FFFFFF;
 
   /* Text */
-  --text: #101828;
-  --text-secondary: #475569;
-  --text-muted: #556274;
+  --text: #2D2A26;           /* Dark brown/black for text */
+  --text-secondary: #5A554E;
+  --text-muted: #7A746C;
   --text-inverse: #FFFFFF;
 
-  --primary-text: #0A6B63;
-  --accent-text: #AD3B34;
+  --primary-text: #14532D;
+  --accent-text: #4D7C0F;
 
-  --border: rgba(16, 24, 40, 0.10);
-  --border-light: rgba(16, 24, 40, 0.05);
-  --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
-  --shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0,0,0,0.03);
-  --shadow-md: 0 4px 6px rgba(0,0,0,0.05), 0 2px 4px rgba(0,0,0,0.03);
-  --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.06), 0 4px 10px rgba(0,0,0,0.04);
-  --shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.1), 0 8px 20px rgba(0,0,0,0.06);
+  --border: rgba(45, 42, 38, 0.12);
+  --border-light: rgba(45, 42, 38, 0.06);
+  --shadow-sm: 0 1px 2px rgba(45, 42, 38, 0.04);
+  --shadow: 0 1px 3px rgba(45, 42, 38, 0.05), 0 1px 2px rgba(45, 42, 38, 0.03);
+  --shadow-md: 0 4px 6px rgba(45, 42, 38, 0.05), 0 2px 4px rgba(45, 42, 38, 0.03);
+  --shadow-lg: 0 10px 25px rgba(45, 42, 38, 0.06), 0 4px 10px rgba(45, 42, 38, 0.04);
+  --shadow-xl: 0 20px 60px rgba(45, 42, 38, 0.1), 0 8px 20px rgba(45, 42, 38, 0.06);
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
@@ -63,14 +63,14 @@
   --ease-spring: cubic-bezier(0.32, 0.72, 0, 1);
   --transition: 0.3s var(--ease-out);
   --transition-fast: 0.15s var(--ease-out);
-  --positive: #047857;
-  --positive-text: #046C4E;
+  --positive: #166534;
+  --positive-text: #15803D;
   --negative: #C81E1E;
   --negative-text: #A81616;
   --warning: #B45309;
   --warning-text: #8A3D08;
   --info: #0B5FBF;
-  --focus-ring: #0A6B63;
+  --focus-ring: #166534;
 
   /* Semantic tints — derived, so a theme switch keeps them in sync */
   --primary-tint: color-mix(in srgb, var(--primary) 12%, var(--bg-card-solid));
@@ -79,12 +79,12 @@
   --negative-tint: color-mix(in srgb, var(--negative) 12%, var(--bg-card-solid));
   --warning-tint: color-mix(in srgb, var(--warning) 14%, var(--bg-card-solid));
 
-  --chart-1: #0D9488;
-  --chart-2: #F97066;
-  --chart-3: #F59E0B;
-  --chart-4: #6366F1;
-  --chart-5: #8B5CF6;
-  --chart-6: #EC4899;
+  --chart-1: #166534;
+  --chart-2: #22C55E;
+  --chart-3: #84CC16;
+  --chart-4: #65A30D;
+  --chart-5: #4D7C0F;
+  --chart-6: #A3E635;
 
   /* Spacing scale */
   --space-1: 4px;  --space-2: 8px;  --space-3: 12px; --space-4: 16px;
@@ -1672,3 +1672,121 @@ body.modal-open { overflow: hidden; }
   .recent-row:hover { background:var(--border) !important; transform:translateX(-2px); }
 }
 [dir="rtl"] .recent-row:hover { transform:translateX(2px); }
+
+/* ============================================================
+   Onboarding coachmarks — الجولة التعليمية
+   ------------------------------------------------------------
+   The scrim is four bands laid around the target, not one layer
+   with a hole: a backdrop blur applies to everything painted
+   below it, so a hole in a blurred layer would be blurred too.
+   Four non-overlapping bands keep the highlight genuinely crisp.
+
+   This is the ONE place the theme uses backdrop-filter. The
+   sticker rule against blur exists because blur on scrolling cards
+   costs frames; here the layers are static for the length of a
+   step, and @supports drops to a plain dim where blur is absent.
+   ============================================================ */
+:root {
+  --z-tour: 300;
+  --tour-scrim: rgba(15, 23, 42, 0.45);
+  --tour-scrim-solid: rgba(15, 23, 42, 0.74);
+  --tour-tap: 44px;
+}
+
+/* Locking the scrollbar removes ~15px of layout width, which would shift
+   the highlighted element sideways mid-tour. Reserve the gutter instead. */
+html:has(body.tour-open) { scrollbar-gutter: stable; }
+body.tour-open { overflow: hidden; }
+
+.tour { position: fixed; inset: 0; z-index: var(--z-tour); pointer-events: none; }
+
+.tour-band {
+  position: absolute;
+  background: var(--tour-scrim);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+  opacity: 0;
+  transition: opacity var(--transition);
+}
+.tour:not([hidden]) .tour-band { opacity: 1; }
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  /* No blur: raise the dim so the spotlight still reads as a spotlight. */
+  .tour-band { background: var(--tour-scrim-solid); }
+}
+
+/* The spotlight edge. Pulsing is decoration, so it is the first
+   thing to go when the user asks for less motion. */
+.tour-ring {
+  position: absolute;
+  border: 2px solid var(--primary);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 0 0 4px var(--primary-glow);
+  animation: tourPulse 1.8s var(--ease-in-out) infinite;
+}
+@keyframes tourPulse {
+  0%, 100% { box-shadow: 0 0 0 4px var(--primary-glow); }
+  50%      { box-shadow: 0 0 0 10px transparent; }
+}
+
+.tour-card {
+  position: absolute;
+  width: min(360px, calc(100vw - 32px));
+  padding: 26px 24px 20px;
+  background: var(--bg-card-solid);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+  pointer-events: auto;
+  transition: opacity var(--transition-fast), transform var(--transition-fast);
+}
+.tour-card:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 3px; }
+.tour-card.is-swapping { opacity: 0; transform: translateY(8px) scale(0.98); }
+
+.tour-count {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--primary-text);
+  margin-bottom: 6px;
+}
+.tour-count:empty { display: none; }
+
+.tour-title {
+  font-family: var(--font-arabic);
+  font-size: var(--text-xl);
+  font-weight: 800;
+  line-height: 1.4;
+  margin-bottom: 8px;
+}
+.tour-body {
+  font-family: var(--font-arabic);
+  font-size: var(--text-base);
+  line-height: 1.85;
+  color: var(--text-secondary);
+  margin-bottom: 18px;
+}
+
+.tour-dots { display: flex; gap: 6px; margin-bottom: 18px; }
+.tour-dot {
+  width: 7px; height: 7px; border-radius: var(--radius-full);
+  background: var(--border); transition: background var(--transition-fast);
+}
+.tour-dot.is-on { background: var(--primary); width: 20px; }
+
+.tour-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.tour-actions-main { display: flex; gap: 8px; margin-inline-start: auto; }
+.tour-actions .btn { min-height: var(--tour-tap); }
+.tour-actions .btn-ghost { background: transparent; color: var(--text-muted); }
+.tour-actions .btn-ghost:hover { color: var(--text); }
+
+/* Skipped at the edge of a 320px screen rather than wrapping into a
+   two-row layout that would look accidental. */
+@media (max-width: 380px) {
+  .tour-actions .btn-ghost { padding: var(--space-2) var(--space-3); }
+  .tour-actions-main { gap: 6px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tour-ring { animation: none; box-shadow: 0 0 0 4px var(--primary-glow); }
+  .tour-card, .tour-band { transition: none; }
+}

@@ -326,7 +326,61 @@ const i18n = {
     alloc_amount: 'المبلغ المخصص',
     remaining: 'متبقٍ',
     overspent: 'تجاوز',
-    spent_of: 'من أصل'
+    spent_of: 'من أصل',
+    /* الجولة التعليمية — Coachmarks */
+    tour_replay: 'إعادة الشرح',
+    tour_replay_desc: 'اعرض الجولة التعليمية مرة ثانية',
+    tour_start: 'يلا نبدأ',
+    tour_start_now: 'ابدأ',
+    tour_next: 'التالي',
+    tour_back: 'رجوع',
+    tour_skip: 'تخطي',
+    tour_finish: 'خلّصنا',
+    tour_welcome_title: 'أهلاً بيك في SplitEase',
+    tour_welcome_body: 'بيقسّم مصاريف شلتك ويقولك مين عليه مين لك — من غير ما تحسب بإيدك.',
+    tour_add_title: 'سجّل المصروف من زر +',
+    tour_add_body: 'المبلغ، الفئة، مين دفع، وتقسيمه على الباقي — كله في شاشة واحدة.',
+    tour_nav_title: 'كل الشلّات من هون',
+    tour_nav_body: 'الرئيسية، الشلّات، الميزانية، مصاريفك، والتقارير — كلها في شريط واحد.',
+    tour_groups_title: 'دوّر على شلتك بسرعة',
+    tour_groups_body: 'اكتب اسم الشلة وبتظهرلك على طول.',
+    tour_groups_empty_title: 'ابدأ بأول شلة',
+    tour_groups_empty_body: 'اضغط «مجموعة جديدة»، سمّي شلتك، وضيف أصحابك.',
+    tour_settings_title: 'الإعدادات والسحابة',
+    tour_settings_body: 'العملة، الوضع الليلي، والشلة السحابة عشان تقسّم مع رفاقك من أي جهاز.',
+    tour_done_title: 'خلّصنا، يلا نلعب',
+    tour_done_body: 'أول خطوة: اعمل شلة، ضيف أصحابك، وسجّل أول مصروف. بالتوفيق.',
+    tour_finished_toast: 'يلا نبدأ بالشلّة الأولى',
+    tour_skipped_toast: 'تقدر ترجّع الشرح وقت ما تحب من الإعدادات',
+    /* ── Interactive Onboarding (New) ── */
+    tour_step_welcome_title: 'أهلاً بيك في SplitEase! 👋',
+    tour_step_welcome_body: 'بتطبيق يقسّم مصاريف الشلة ويقولك مين عليه مين — من غير ما تحسب بإيدك. هنتعلّم سوا في دقيقة.',
+    tour_step_name_title: 'أولاً: اسمك؟',
+    tour_step_name_body: 'اكتب اسمك عشان يظهر في المجموعات والمصاريف. هيتحفظ محلياً على جهازك.',
+    tour_step_name_placeholder: 'مثال: أحمد',
+    tour_step_name_done: 'تمام، اسمك محفوظ ✅',
+    tour_step_create_group_title: 'الخطوة التانية: اصنع أول شلة',
+    tour_step_create_group_body: 'اضغط «مجموعة جديدة» وسمّي شلتك (مثلاً: شقة الطلاب، رحلة الغردقة).',
+    tour_step_create_group_done: 'ممتاز! شلتك جاهزة ✅',
+    tour_step_add_member_title: 'الخطوة التالتة: ضيف أصحابك',
+    tour_step_add_member_body: 'اكتب أسماء اللي في الشلة. كل واحد هيتحفظ معه رصيده.',
+    tour_step_add_member_done: 'أصحابك اتضافوا ✅',
+    tour_step_add_expense_title: 'الخطوة الأخيرة: سجّل أول مصروف',
+    tour_step_add_expense_body: 'اضغط زر + بالأسفل، اكتب المبلغ والفئة، اختار مين دفع، واضغط حفظ.',
+    tour_step_add_expense_done: 'برافو! أول مصروف اتسجّل ✅ — هتلاقيه في المجموعة والتقارير.',
+    tour_step_all_done_title: 'خلّصنا! 🎉',
+    tour_step_all_done_body: 'دلوقتي تقدر: تضيف مصاريف، تشوف مين عليه مين، تعمل تسويات، وتصدر تقارير. كل حاجة بتتتحفظ أوتوماتيك.',
+    tour_step_all_done_cta: 'ابدأ دلوقتي',
+    /* Push Notifications */
+    notifications: 'الإشعارات',
+    notifications_desc: 'استقبل تنبيهات لما حد يضيف مصروف عليك أو يسدد',
+    push_enabled: 'مفعل',
+    push_disabled: 'معطل',
+    push_enable: 'تفعيل الإشعارات',
+    push_disable: 'إلغاء الإشعارات',
+    push_permission_denied: 'تم رفض الإذن — فعّله من إعدادات المتصفح',
+    push_subscribing: 'جارٍ التفعيل…',
+    push_unsubscribing: 'جارٍ الإلغاء…'
   }
 };
 let lang = 'ar';
@@ -336,25 +390,28 @@ function t(key) { return i18n[lang]?.[key] || key; }
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
 function today() { return new Date().toISOString().slice(0, 10); }
 
+/* Emoji set: object glyphs rather than cartoon faces — they render at a
+   consistent weight across platforms, so a row of categories reads as one
+   family instead of a ransom note. */
 const CATEGORIES = [
-  { id: 'food', icon: '🍔', color: '#F97066' },
-  { id: 'transport', icon: '🚗', color: '#F59E0B' },
+  { id: 'food', icon: '🍽️', color: '#F97066' },
+  { id: 'transport', icon: '🚕', color: '#F59E0B' },
   { id: 'shopping', icon: '🛍️', color: '#6366F1' },
-  { id: 'entertainment', icon: '🎮', color: '#8B5CF6' },
-  { id: 'bills', icon: '📄', color: '#EC4899' },
-  { id: 'housing', icon: '🏠', color: '#0D9488' },
+  { id: 'entertainment', icon: '🎬', color: '#8B5CF6' },
+  { id: 'bills', icon: '🧾', color: '#EC4899' },
+  { id: 'housing', icon: '🏡', color: '#0D9488' },
   { id: 'health', icon: '💊', color: '#10B981' },
   { id: 'rent', icon: '🏢', color: '#E11D48' },
-  { id: 'internet', icon: '🌐', color: '#3B82F6' },
-  { id: 'kids', icon: '🧒', color: '#F472B6' },
-  { id: 'electricity', icon: '⚡', color: '#FBBF24' },
+  { id: 'internet', icon: '📶', color: '#3B82F6' },
+  { id: 'kids', icon: '🧸', color: '#F472B6' },
+  { id: 'electricity', icon: '💡', color: '#FBBF24' },
   { id: 'water', icon: '💧', color: '#38BDF8' },
-  { id: 'gas', icon: '🔥', color: '#FB923C' },
-  { id: 'maintenance', icon: '🔧', color: '#A78BFA' },
-  { id: 'custom', icon: '✏️', color: '#94A3B8' }
+  { id: 'gas', icon: '⛽', color: '#FB923C' },
+  { id: 'maintenance', icon: '🧰', color: '#A78BFA' },
+  { id: 'custom', icon: '🏷️', color: '#94A3B8' }
 ];
 
-const GROUP_ICONS = ['🏠','✈️','🎓','👥','❤️','💼','🎉','🏖️','🎵','⚽'];
+const GROUP_ICONS = ['🏡','✈️','🎓','👥','💞','💼','🎉','🏝️','🎵','⚽','🎂','🐾'];
 const GROUP_COLORS = ['#0D9488','#F97066','#6366F1','#F59E0B','#EC4899','#10B981','#8B5CF6','#E11D48'];
 
 const CURRENCIES = ['EGP','USD','EUR','SAR','AED','KWD','QAR','ILS'];
@@ -391,6 +448,59 @@ function categoryColor(id) {
   return c ? c.color : '#94A3B8';
 }
 
+/* ── Local User Profile ── */
+const LOCAL_PROFILE_KEY = 'splitease-local-profile';
+function loadLocalProfile() {
+  try {
+    const raw = localStorage.getItem(LOCAL_PROFILE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+function saveLocalProfile(profile) {
+  try { localStorage.setItem(LOCAL_PROFILE_KEY, JSON.stringify(profile)); } catch { /* private mode */ }
+}
+function getLocalUserName() {
+  const p = loadLocalProfile();
+  return p?.name || '';
+}
+function setLocalUserName(name) {
+  const p = loadLocalProfile() || {};
+  p.name = name.trim();
+  saveLocalProfile(p);
+  state.localUserName = p.name;
+  return p.name;
+}
+window.setLocalUserName = setLocalUserName;
+window.getLocalUserName = getLocalUserName;
+window.getLocalUserInitials = getLocalUserInitials;
+window.editLocalProfile = editLocalProfile;
+
+function editLocalProfile() {
+  const current = getLocalUserName();
+  showModal('تعديل اسمك', `
+    <div class="form-group">
+      <label class="form-label" for="localNameInput">اسمك</label>
+      <input class="form-input" id="localNameInput" value="${esc(current)}" placeholder="مثال: أحمد">
+    </div>
+    <button class="btn btn-primary btn-block btn-lg" onclick="saveLocalProfile()">حفظ</button>
+  `, true);
+  document.getElementById('localNameInput')?.focus();
+}
+
+function saveLocalProfile() {
+  const name = document.getElementById('localNameInput')?.value?.trim();
+  if (!name || name.length < 2) { toast('الاسم قصير جداً', 'error'); return; }
+  setLocalUserName(name);
+  closeModal();
+  toast('تم حفظ اسمك ✅', 'success');
+  renderSettings();
+}
+
+function getLocalUserInitials() {
+  const name = getLocalUserName();
+  return name ? name.trim().split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase() : '؟';
+}
+
 /* ── State ── */
 const state = {
   groups: [],
@@ -398,7 +508,10 @@ const state = {
   currentGroupId: null,
   theme: localStorage.getItem('splitease-theme') || 'light',
   currency: localStorage.getItem('splitease-currency') || 'EGP',
-  lang: localStorage.getItem('splitease-lang') || 'ar'
+  lang: localStorage.getItem('splitease-lang') || 'ar',
+  pushEnabled: localStorage.getItem('splitease-push') === '1',
+  pushSubscribed: false,
+  localUserName: getLocalUserName()
 };
 
 async function loadState() {
@@ -827,6 +940,7 @@ function filterGroups(q) {
 async function showCreateGroup(groupId) {
   const editGroup = groupId ? state.groups.find(g => g.id === groupId) : null;
   const isEdit = !!editGroup;
+  const localName = getLocalUserName();
   showModal(isEdit ? t('edit') + ' ' + t('group_name') : t('create_group'), `
     <div class="form-group">
       <label class="form-label" for="gName">${t('group_name')}</label>
@@ -857,7 +971,7 @@ async function showCreateGroup(groupId) {
     <div class="form-group">
       <label class="form-label" id="lbl-group-4">${t('add_members')}</label>
       <div class="form-row" style="margin-bottom:8px" role="group" aria-labelledby="lbl-group-4">
-        <input class="form-input" id="newMemberName" placeholder="${t('member_name')}">
+        <input class="form-input" id="newMemberName" placeholder="${t('member_name')}" value="${!isEdit && localName ? esc(localName) : ''}">
         <button class="btn btn-primary" onclick="addMemberToList()">${t('add')}</button>
       </div>
       <div class="member-list" id="memberList"></div>
@@ -1505,8 +1619,44 @@ function copyInviteLink() {
 /* renderInsights removed — replaced by renderDashboard */
 
 function renderSettings() {
+  const localName = getLocalUserName();
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  const canInstall = !isStandalone && 'serviceWorker' in navigator && 'BeforeInstallPromptEvent' in window;
   document.getElementById('appContent').innerHTML = `
     <div class="page-header"><h1>${t('settings')}</h1></div>
+    <div class="settings-group">
+      <h3>ملفك الشخصي</h3>
+      <div class="settings-item">
+        <div class="settings-item-left">
+          <div style="width:40px;height:40px;border-radius:50%;background:var(--primary);color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px">${getLocalUserInitials()}</div>
+          <div class="settings-item-text">
+            <h4>اسمك في التطبيق</h4>
+            <p>${localName || 'غير مضاف'}</p>
+          </div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="editLocalProfile()">تعديل</button>
+      </div>
+    </div>
+    <div class="settings-group">
+      <h3>التطبيق على جهازك</h3>
+      ${!isStandalone ? `
+      <div class="settings-item">
+        <div class="settings-item-left">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <div class="settings-item-text">
+            <h4>ثبت التطبيق على الشاشة الرئيسية</h4>
+            <p>يعمل أوفلاين 100%، يفتح زي أي تطبيق، ويوصلك إشعارات</p>
+          </div>
+        </div>
+        <button class="btn btn-primary btn-sm" id="installBtn" onclick="promptInstall()" ${canInstall ? '' : 'disabled'}>${isIOS ? 'تعليمات iOS' : 'تثبيت'}</button>
+      </div>
+      ` : `
+      <div class="settings-item" style="justify-content:center;color:var(--text-muted);padding:16px">
+        ✅ التطبيق مثبت ويعمل أوفلاين
+      </div>
+      `}
+    </div>
     <div class="settings-group">
       <h3>المظهر</h3>
       <div class="settings-item">
@@ -1528,6 +1678,19 @@ function renderSettings() {
           </div>
         </div>
         <div class="toggle ${state.theme === 'high-contrast' ? 'active' : ''}" role="switch" tabindex="0" onclick="toggleHighContrast()" onkeydown="if(event.key===' '||event.key==='Enter'){event.preventDefault();toggleHighContrast();}"><div class="toggle-knob"></div></div>
+      </div>
+    </div>
+    <div class="settings-group">
+      <h3>${t('notifications')}</h3>
+      <div class="settings-item">
+        <div class="settings-item-left">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <div class="settings-item-text">
+            <h4>${t('notifications')}</h4>
+            <p>${t('notifications_desc')}</p>
+          </div>
+        </div>
+        <div class="toggle ${state.pushEnabled ? 'active' : ''}" role="switch" tabindex="0" onclick="togglePush()" onkeydown="if(event.key===' '||event.key==='Enter'){event.preventDefault();togglePush();}"><div class="toggle-knob"></div></div>
       </div>
     </div>
     <div class="settings-group">
@@ -1561,6 +1724,16 @@ function renderSettings() {
           </div>
         </div>
       </div>
+      <div class="settings-item">
+        <div class="settings-item-left">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+          <div class="settings-item-text">
+            <h4>${t('tour_replay')}</h4>
+            <p>${t('tour_replay_desc')}</p>
+          </div>
+        </div>
+        <button class="btn btn-ghost" onclick="replayTour()">${t('tour_replay')}</button>
+      </div>
       ${supabaseClient && authState.user ? `
       <div class="settings-item" style="border-top:1px solid var(--border);padding-top:12px;margin-top:12px">
         <div class="settings-item-left">
@@ -1580,6 +1753,117 @@ function renderSettings() {
     </div>
   `;
   syncSwitchStates();
+}
+
+/* Manual replay. Clearing the flag first keeps the two paths identical:
+   the tour always runs through the same start(), whether it was
+   automatic or asked for from Settings. */
+function replayTour() {
+  if (!window.Onboarding) return;
+  window.Onboarding.reset();
+  window.Onboarding.start();
+}
+
+/* ── Push Notifications ── */
+async function togglePush() {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+    toast(t('push_permission_denied'), 'error');
+    return;
+  }
+
+  const swReg = await navigator.serviceWorker.ready;
+  const sub = await swReg.pushManager.getSubscription();
+  const currentlySubscribed = !!sub;
+
+  if (currentlySubscribed && state.pushEnabled) {
+    /* Unsubscribe */
+    state.pushEnabled = false;
+    localStorage.setItem('splitease-push', '0');
+    navigator.serviceWorker.controller?.postMessage({ type: 'unsubscribePush' });
+    toast(t('push_disabled'), 'info');
+  } else {
+    /* Subscribe */
+    try {
+      const perm = await Notification.requestPermission();
+      if (perm !== 'granted') {
+        toast(t('push_permission_denied'), 'error');
+        return;
+      }
+      state.pushEnabled = true;
+      localStorage.setItem('splitease-push', '1');
+      navigator.serviceWorker.controller?.postMessage({ type: 'subscribePush' });
+      toast(t('push_enabled'), 'success');
+    } catch (e) {
+      console.error('Push subscribe failed:', e);
+      toast(t('push_permission_denied'), 'error');
+      state.pushEnabled = false;
+      localStorage.setItem('splitease-push', '0');
+    }
+  }
+  renderSettings();
+}
+
+/* ── PWA Install ── */
+let deferredInstallPrompt = null;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  const btn = document.getElementById('installBtn');
+  if (btn) { btn.disabled = false; btn.textContent = 'تثبيت'; }
+});
+
+function promptInstall() {
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  if (isIOS) {
+    showModal('تثبيت على iOS', `
+      <div style="text-align:right;direction:rtl;line-height:1.8">
+        <p>على iOS، التثبيت يدوي من المتصفح:</p>
+        <ol style="margin:12px 0;padding-right:20px">
+          <li>اضغط زر المشاركة <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18" style="vertical-align:middle;margin-left:4px"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg> في سفاري</li>
+          <li>اسحب لأسفل واختر <strong>«إضافة إلى الشاشة الرئيسية»</strong></li>
+          <li>اضغط <strong>إضافة</strong> في الزاوية</li>
+        </ol>
+        <p style="font-size:12px;color:var(--text-muted)">التطبيق سيعمل أوفلاين بالكامل بعد التثبيت</p>
+      </div>
+    `, true);
+    return;
+  }
+  if (!deferredInstallPrompt) {
+    toast('التطبيق مثبت بالفعل أو المتصفح لا يدعم التثبيت التلقائي', 'info');
+    return;
+  }
+  deferredInstallPrompt.prompt();
+  deferredInstallPrompt.userChoice.then((choice) => {
+    if (choice.outcome === 'accepted') {
+      toast('جاري التثبيت...', 'success');
+    }
+    deferredInstallPrompt = null;
+    const btn = document.getElementById('installBtn');
+    if (btn) btn.disabled = true;
+  });
+}
+
+/* ── Online/Offline indicator ── */
+function setupOnlineIndicator() {
+  const indicator = document.createElement('div');
+  indicator.id = 'onlineIndicator';
+  indicator.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);padding:6px 12px;border-radius:999px;font-size:11px;font-weight:600;z-index:9999;transition:opacity .3s,transform .3s;opacity:0;pointer-events:none;background:var(--negative);color:white';
+  indicator.textContent = 'أنت أوفلاين';
+  document.body.appendChild(indicator);
+
+  function update() {
+    if (!navigator.onLine) {
+      indicator.style.opacity = '1';
+      indicator.style.transform = 'translateX(-50%) translateY(0)';
+    } else {
+      indicator.style.opacity = '0';
+      indicator.style.transform = 'translateX(-50%) translateY(100%)';
+    }
+  }
+  window.addEventListener('online', update);
+  window.addEventListener('offline', update);
+  update();
 }
 
 /* ── Theme ── */
@@ -2096,6 +2380,27 @@ async function init() {
     }
   }
 
+  setupOnlineIndicator();
+
+  /* Initialize push notifications if enabled */
+  if (state.pushEnabled && 'serviceWorker' in navigator && 'PushManager' in window) {
+    try {
+      const perm = await Notification.requestPermission();
+      if (perm === 'granted') {
+        const swReg = await navigator.serviceWorker.ready;
+        const sub = await swReg.pushManager.getSubscription();
+        if (!sub) {
+          navigator.serviceWorker.controller?.postMessage({ type: 'subscribePush' });
+        }
+      } else {
+        state.pushEnabled = false;
+        localStorage.setItem('splitease-push', '0');
+      }
+    } catch (e) {
+      console.warn('Push init failed:', e);
+    }
+  }
+
   document.getElementById('loadingScreen').classList.add('hidden');
   setTimeout(() => { document.getElementById('loadingScreen').style.display = 'none'; }, 500);
 
@@ -2135,6 +2440,19 @@ async function init() {
   document.getElementById('themeToggle').addEventListener('click', toggleTheme);
 
   updateBadge();
+
+  /* First-run coachmarks. Runs last so every step can measure a settled
+     layout, and never on the auth screen. */
+  if (window.Onboarding) window.Onboarding.maybeStart();
+
+  /* Pass Supabase config to service worker for push notifications */
+  if (navigator.serviceWorker?.controller && window.SUPABASE_CONFIG) {
+    navigator.serviceWorker.controller.postMessage({
+      type: 'initSupabase',
+      url: window.SUPABASE_CONFIG.url,
+      anonKey: window.SUPABASE_CONFIG.anonKey,
+    });
+  }
 }
 
 document.addEventListener('DOMContentLoaded', init);

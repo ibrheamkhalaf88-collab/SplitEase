@@ -1,0 +1,79 @@
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { WebPush } from "https://deno.land/x/web_push@0.2.0/mod.ts";
+
+// CORS headers
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+
+serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
+  }
+
+  try {
+    const { title, body, data, userIds, tag } = await req.json();
+
+    if (!title || !body) {
+      return new Response(
+        JSON.stringify({ error: "title and body required" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Initialize Supabase client
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Initialize WebPush with VAPID keys
+    const vapidPublicKey = Deno.env.get("VAPID_PUBLIC_KEY")!;
+    const vapidPrivateKey = Deno.env.get("VAPID_PRIVATE_KEY")!;
+    const vapidSubject = Deno.env.get("VAPID_SUBJECT") || "mailto:admin@splitease.app";
+
+    const webPush = new WebPush(vapidPublicKey, vapidPrivateKey, vapidSubject);
+
+    // Get push subscriptions for target users
+    let query = supabase.from("push_subscriptions").select("subscription");
+    if (userIds && userIds.length > 0) {
+      query = query.in("user_id", userIds);
+    }
+    const { data: subscriptions, error } = await query;
+    if (error) throw error;
+
+    const payload = JSON.stringify({ title, body, data: data || {}, tag: tag || "splitease-notification" });
+
+    // Send to all subscriptions
+    const results = await Promise.allSettled(
+      (subscriptions || []).map(async (row) => {
+        try {
+          await webPush.sendNotification(row.subscription, payload);
+          return { success: true };
+        } catch (e: any) {
+          // If subscription expired/invalid, delete it
+          if (e.statusCode === 410 || e.statusCode === 404) {
+            await supabase.from("push_subscriptions").delete().eq("endpoint", row.subscription.endpoint);
+          }
+          return { success: false, error: e.message };
+        }
+      })
+    );
+
+    const sent = results.filter(r => r.status === "fulfilled" && r.value.success).length;
+    const failed = results.length - sent;
+
+    return new Response(
+      JSON.stringify({ sent, failed, total: results.length }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  } catch (e: any) {
+    console.error("Push send error:", e);
+    return new Response(
+      JSON.stringify({ error: e.message }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+});

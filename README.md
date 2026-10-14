@@ -44,6 +44,16 @@ window.SUPABASE_CONFIG = {
 يُحمّل بعد `js/supabase-config.js` ويتجاوزه. **لا تضع `service_role` key في
 أي ملف** — الحماية كلها على مستوى RLS، ومفتاح `anon` عام بالتصميم.
 
+**3) إشعارات Push (اختياري):** في Supabase Dashboard → Edge Functions → Environment Variables، أضف:
+- `VAPID_PUBLIC_KEY` = `BHgbrA4mKkxoCW_US7RtsTGQ_ZAXPGL8pbG0TJ1-Jm2jM5e09LZiaB6_Pmt93rnsTAzs48jQ8LjSCmUa2FnexKE` (نفس اللي في `sw.js`)
+- `VAPID_PRIVATE_KEY` = `GitEEIscI7IML1z8zHjtdNBmtfi_Ih5lYXkv8O79oDo` (من `npx web-push generate-vapid-keys`)
+- `VAPID_SUBJECT` = `mailto:your-email@domain.com`
+
+ثم انشر الـ Edge Functions:
+```bash
+supabase functions deploy send-push push-subscribe
+```
+
 عند الإقلاع سيظهر عنصر "السحابة" في القائمة تلقائياً. بدونه التطبيق يعمل
 محلياً فقط.
 
@@ -72,6 +82,22 @@ bcrypt، و`join_room` بتردّ بمồn واحد لكل من «الغرفة �
 
 `.github/workflows/ci.yml` يشغّل الاختبارات ثم ينشر على Pages بعد نجاحها.
 الموقع ثابت بالكامل، فيُرفع جذر المستودع كما هو.
+
+## التثبيت على الجوال (PWA) — يعمل أوفلاين 100%
+
+التطبيق **Progressive Web App** مكتمل:
+- **Service Worker** يخزن كل الملفات (HTML, CSS, JS, الأيقونات) — يفتح بدون إنترنت
+- **IndexedDB** يخزن كل بياناتك محلياً (المجموعات، المصاريف، الميزانيات، الإعدادات)
+- **Manifest** مع أيقونات `maskable` و `shortcuts` للوصول السريع
+- **إشعارات Push** عبر Web Push API (VAPID)
+
+**طريقة التثبيت:**
+1. افتح الموقع في المتصفح (Chrome/Edge على أندرويد، Safari على iOS)
+2. **أندرويد:** سيظهر بار "ثبت التطبيق" أو اذهب لإعدادات المتصفح → "تثبيت التطبيق"
+3. **iOS:** اضغط زر المشاركة ← "إضافة إلى الشاشة الرئيسية"
+4. الأيقونة تظهر على الشاشة الرئيسية، تفتح بملء الشاشة (standalone)، وتعمل أوفلاين بالكامل
+
+في الإعدادات هتلاقي قسم **"التطبيق على جهازك"** مع زر تثبيت مباشر أو تعليمات iOS.
 
 ## البنية
 
