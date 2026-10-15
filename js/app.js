@@ -1658,6 +1658,29 @@ function renderSettings() {
       `}
     </div>
     <div class="settings-group">
+      <h3>المساعدة والشرح</h3>
+      <div class="settings-item">
+        <div class="settings-item-left">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+          <div class="settings-item-text">
+            <h4>وضع الشرح التفاعلي</h4>
+            <p>فعّله عشان تضغط أي زر/حقل وتشوف شرحه بصيغة ودية</p>
+          </div>
+        </div>
+        <div class="toggle ${window.ContextualHelp?.isActive() ? 'active' : ''}" role="switch" tabindex="0" onclick="toggleHelpMode()" onkeydown="if(event.key===' '||event.key==='Enter'){event.preventDefault();toggleHelpMode();}"><div class="toggle-knob"></div></div>
+      </div>
+      <div class="settings-item">
+        <div class="settings-item-left">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 16v-4M12 8h.01"/></svg>
+          <div class="settings-item-text">
+            <h4>إعادة تعيين الشروحات المشاهدة</h4>
+            <p>يمسح الذاكرة ويعرض كل الشروحات من جديد</p>
+          </div>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="resetHelpSeen()">إعادة تعيين</button>
+      </div>
+    </div>
+    <div class="settings-group">
       <h3>المظهر</h3>
       <div class="settings-item">
         <div class="settings-item-left">
@@ -1883,6 +1906,21 @@ function toggleHighContrast() {
   applyTheme(state.theme);
   renderSettings();
   syncSwitchStates();
+}
+
+/* ── Help Mode ── */
+function toggleHelpMode() {
+  if (window.ContextualHelp) {
+    window.ContextualHelp.toggle();
+    renderSettings();
+  }
+}
+
+function resetHelpSeen() {
+  if (window.ContextualHelp) {
+    window.ContextualHelp.resetSeen();
+    toast('تم إعادة تعيين الشروحات — ستظهر من جديد', 'info');
+  }
 }
 
 /* The switches carry role="switch" but no static aria-checked, because the

@@ -1790,3 +1790,186 @@ body.tour-open { overflow: hidden; }
   .tour-ring { animation: none; box-shadow: 0 0 0 4px var(--primary-glow); }
   .tour-card, .tour-band { transition: none; }
 }
+
+/* ============================================================
+   Contextual Help System — "صديقك في SplitEase"
+   ============================================================ */
+
+:root {
+  --z-help: 400;
+  --help-accent: var(--primary);
+  --help-accent-glow: rgba(13, 148, 136, 0.3);
+}
+
+/* Help FAB */
+.help-fab {
+  position: fixed;
+  bottom: 90px;
+  right: 16px;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, var(--primary-strong), var(--primary-strong-2));
+  color: var(--on-primary);
+  border: none;
+  box-shadow: var(--shadow-lg), 0 0 0 4px var(--help-accent-glow);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--z-help);
+  transition: transform var(--transition), box-shadow var(--transition), background var(--transition);
+  overflow: hidden;
+}
+.help-fab:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 3px; }
+.help-fab:hover { transform: scale(1.08); box-shadow: var(--shadow-xl), 0 0 0 6px var(--help-accent-glow); }
+.help-fab:active { transform: scale(0.95); }
+.help-fab svg { width: 24px; height: 24px; transition: transform var(--transition); }
+.help-fab.active svg { transform: rotate(45deg); }
+.help-fab-pulse {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  opacity: 0;
+  animation: helpPulse 2s ease-out infinite;
+}
+@keyframes helpPulse {
+  0% { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+
+/* Highlighted elements in help mode */
+.help-highlighted {
+  position: relative;
+  box-shadow: 0 0 0 3px var(--help-accent), 0 0 0 6px var(--help-accent-glow) !important;
+  border-radius: var(--radius-md);
+  transition: box-shadow var(--transition-fast);
+}
+.help-highlighted::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: var(--radius-md);
+  border: 2px dashed var(--help-accent);
+  pointer-events: none;
+  animation: helpDash 1.5s linear infinite;
+}
+@keyframes helpDash {
+  to { border-color: transparent; } /* subtle pulse via opacity would be better but keeping simple */
+}
+
+/* Help Card */
+.help-card {
+  position: fixed;
+  width: min(340px, calc(100vw - 32px));
+  max-height: 70vh;
+  background: var(--bg-card-solid);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+  z-index: calc(var(--z-help) + 1);
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  opacity: 0;
+  transform: scale(0.95) translateY(8px);
+  transition: opacity var(--transition-fast), transform var(--transition-fast);
+}
+.help-card.visible { opacity: 1; transform: scale(1) translateY(0); }
+
+.help-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 20px 20px 12px;
+  border-bottom: 1px solid var(--border);
+}
+.help-card-icon {
+  font-size: 28px;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.help-card-header h3 {
+  flex: 1;
+  font-size: var(--text-lg);
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.4;
+  margin: 0;
+}
+.help-card-close {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+.help-card-close:hover { background: var(--border-light); color: var(--text); }
+.help-card-close:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+
+.help-card-body {
+  padding: 16px 20px;
+  font-family: var(--font-arabic);
+  font-size: var(--text-sm);
+  line-height: 1.85;
+  color: var(--text-secondary);
+  overflow-y: auto;
+  flex: 1;
+}
+.help-card-body br { display: block; content: ''; margin-bottom: 8px; }
+
+.help-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px;
+  border-top: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+.help-dont-show {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  user-select: none;
+}
+.help-dont-show input { accent-color: var(--primary); width: 16px; height: 16px; }
+.help-dont-show:hover { color: var(--text); }
+
+.help-card-gotit {
+  min-height: 40px;
+  padding: 0 16px;
+  font-weight: 600;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .help-fab-pulse { animation: none; display: none; }
+  .help-highlighted::before { animation: none; }
+  .help-card, .help-fab { transition: none; }
+}
+
+/* Mobile adjustments */
+@media (max-width: 480px) {
+  .help-fab { bottom: 85px; right: 12px; width: 50px; height: 50px; }
+  .help-card { width: calc(100vw - 24px); }
+  .help-card-header { padding: 16px 16px 8px; }
+  .help-card-body { padding: 12px 16px; }
+  .help-card-footer { padding: 12px 16px; flex-direction: column; align-items: stretch; }
+  .help-card-footer .btn { width: 100%; }
+}
