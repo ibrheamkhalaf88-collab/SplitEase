@@ -2620,6 +2620,52 @@ body.tour-open { overflow: hidden; }
   100% { opacity: 0; transform: translateX(-50%) translateY(-60px) scale(0.8); }
 }
 
+/* Buddy mobile overlap fixes */
+@media (max-width: 640px) {
+  .help-buddy {
+    bottom: 85px; /* above FAB */
+    right: 12px;
+    width: 130px;
+    height: 175px;
+    z-index: 350;
+  }
+  .buddy-bubble {
+    max-width: 200px;
+    min-width: 140px;
+    font-size: 11px;
+  }
+  .buddy-bubble-content { font-size: 11px; line-height: 1.5; }
+  .buddy-name-label { font-size: 9px; top: -20px; }
+  .buddy-hint { font-size: 10px; padding: 4px 8px; }
+  .buddy-hint kbd { font-size: 9px; padding: 1px 4px; }
+
+  /* Don't cover modal action area */
+  .modal-overlay:not([hidden]) ~ .help-buddy,
+  .modal:not([hidden]) ~ .help-buddy {
+    z-index: 250;
+    bottom: 20px;
+  }
+}
+
+/* Spotlight target gets boosted z-index */
+.buddy-spotlight-target {
+  position: relative !important;
+  z-index: 500 !important;
+  border-radius: var(--radius-md);
+}
+
+/* Tour counter RTL fix */
+.tour-count {
+  direction: ltr;
+  display: inline-block;
+}
+
+/* Help card avoids buddy on mobile */
+@media (max-width: 480px) {
+  .help-card { max-width: 280px; }
+  .help-card-body { font-size: 12px; line-height: 1.6; }
+}
+
 /* Reduced Motion */
 @media (prefers-reduced-motion: reduce) {
   .help-buddy,

@@ -309,6 +309,8 @@
     centeredStep = true;
     tourTarget = null;
     ui.card.classList.add('is-center');
+    ui.count.style.direction = 'ltr';
+    ui.count.style.display = 'inline-block';
     ui.count.textContent = '';
     ui.title.textContent = step.title;
     ui.body.textContent = step.body;
@@ -326,6 +328,8 @@
     centeredStep = true;
     tourTarget = null;
     ui.card.classList.add('is-center');
+    ui.count.style.direction = 'ltr';
+    ui.count.style.display = 'inline-block';
     ui.count.textContent = `${index + 1} / ${STEPS.length}`;
     ui.title.textContent = step.title;
     ui.body.textContent = step.body;
@@ -363,6 +367,8 @@
       await wait(prefersReduced() ? 60 : 420);
     }
 
+    ui.count.style.direction = 'ltr';
+    ui.count.style.display = 'inline-block';
     ui.count.textContent = `${index + 1} / ${STEPS.length}`;
     ui.title.textContent = step.title;
     ui.body.textContent = step.body;

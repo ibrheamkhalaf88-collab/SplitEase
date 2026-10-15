@@ -598,53 +598,51 @@
 
   function showSpotlight(targetEl) {
     if (!targetEl) return;
+    
+    // Only target visible elements
+    const style = window.getComputedStyle(targetEl);
+    if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') return;
+    
+    const rect = targetEl.getBoundingClientRect();
+    if (rect.width <= 0 || rect.height <= 0) return;
+
+    // Scroll element into view so coordinates are accurate
+    targetEl.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'auto' });
+    
+    // Re-measure after scroll
+    const newRect = targetEl.getBoundingClientRect();
+    
+    // Boost z-index of target so it stays above scrim
+    targetEl.style.position = targetEl.style.position || 'relative';
+    targetEl.style.zIndex = '500';
+    targetEl.classList.add('buddy-spotlight-target');
+
     createSpotlight();
 
-    const rect = targetEl.getBoundingClientRect();
     const vw = window.innerWidth;
     const vh = window.innerHeight;
-    const pad = 12; // padding around target
+    const pad = 12;
 
-    const left = Math.max(0, rect.left - pad);
-    const top = Math.max(0, rect.top - pad);
-    const right = Math.min(vw, rect.right + pad);
-    const bottom = Math.min(vh, rect.bottom + pad);
+    const left = Math.max(0, newRect.left - pad);
+    const top = Math.max(0, newRect.top - pad);
+    const right = Math.min(vw, newRect.right + pad);
+    const bottom = Math.min(vh, newRect.bottom + pad);
     const width = right - left;
     const height = bottom - top;
 
-    // Position bands
     const [bandTop, bandBottom, bandLeft, bandRight] = spotlightBands;
 
-    bandTop.style.cssText = `
-      top: 0; left: 0; width: ${vw}px; height: ${top}px;
-      opacity: 1;
-    `;
-    bandBottom.style.cssText = `
-      top: ${bottom}px; left: 0; width: ${vw}px; height: ${vh - bottom}px;
-      opacity: 1;
-    `;
-    bandLeft.style.cssText = `
-      top: ${top}px; left: 0; width: ${left}px; height: ${height}px;
-      opacity: 1;
-    `;
-    bandRight.style.cssText = `
-      top: ${top}px; left: ${right}px; width: ${vw - right}px; height: ${height}px;
-      opacity: 1;
-    `;
+    bandTop.style.cssText = `top: 0; left: 0; width: ${vw}px; height: ${top}px; opacity: 1;`;
+    bandBottom.style.cssText = `top: ${bottom}px; left: 0; width: ${vw}px; height: ${vh - bottom}px; opacity: 1;`;
+    bandLeft.style.cssText = `top: ${top}px; left: 0; width: ${left}px; height: ${height}px; opacity: 1;`;
+    bandRight.style.cssText = `top: ${top}px; left: ${right}px; width: ${vw - right}px; height: ${height}px; opacity: 1;`;
 
-    // Position ring
     spotlightRing.style.cssText = `
-      top: ${top}px;
-      left: ${left}px;
-      width: ${width}px;
-      height: ${height}px;
-      opacity: 1;
+      top: ${top}px; left: ${left}px; width: ${width}px; height: ${height}px; opacity: 1;
     `;
 
     spotlight.hidden = false;
-    requestAnimationFrame(() => {
-      spotlight.style.opacity = '1';
-    });
+    requestAnimationFrame(() => { spotlight.style.opacity = '1'; });
   }
 
   function hideSpotlight() {
@@ -654,9 +652,14 @@
       spotlightBands.forEach(b => b.style.opacity = '0');
     }
     if (spotlightRing) spotlightRing.style.opacity = '0';
-    setTimeout(() => {
-      if (spotlight) spotlight.hidden = true;
-    }, 300);
+    
+    // Clean up target z-index
+    document.querySelectorAll('.buddy-spotlight-target').forEach(el => {
+      el.style.zIndex = '';
+      el.classList.remove('buddy-spotlight-target');
+    });
+
+    setTimeout(() => { if (spotlight) spotlight.hidden = true; }, 300);
   }
 
   /* ── Pointing Line (SVG) - kept for reference but spotlight replaces it ── */

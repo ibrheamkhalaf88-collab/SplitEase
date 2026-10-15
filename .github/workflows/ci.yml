@@ -1,4 +1,4 @@
-name: CI & Deploy
+name: CI
 
 on:
   push:
@@ -8,12 +8,6 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: 'pages'
-  cancel-in-progress: true
 
 jobs:
   test:
@@ -29,12 +23,6 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
-      - name: Install (no deps expected)
-        run: |
-          # project has no package dependencies, but ensure node works
-          node --version
-          npm --version
-
       - name: Run tests
         run: node --test
         working-directory: ./SplitEase
@@ -44,27 +32,3 @@ jobs:
           for f in SplitEase/js/*.js SplitEase/sw.js SplitEase/scripts/*.mjs; do
             node --check "$f" || exit 1
           done
-
-  deploy:
-    name: Deploy to GitHub Pages
-    needs: test
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: ./SplitEase
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
