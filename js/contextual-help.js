@@ -551,6 +551,12 @@
     helpMode = !helpMode;
     saveHelpMode();
     updateFabState();
+
+    // Notify Help Buddy
+    if (window.HelpBuddy) {
+      window.HelpBuddy.setHelpMode(helpMode);
+    }
+
     if (helpMode) enterHelpMode();
     else exitHelpMode();
   }
@@ -567,7 +573,7 @@
     highlightHelpableElements();
 
     // Show welcome toast
-    if (window.toast) window.toast('💡 وضع الشرح مفعل — اضغط أي عنصر برتقالي لشرحه', 'info');
+    if (window.toast) window.toast('💡 وضع الشرح مفعل — زين هيريحك ويشرحلك كل شي! اضغط أي عنصر مضيء 🧡', 'info');
   }
 
   function exitHelpMode() {
@@ -581,6 +587,11 @@
     }
     unhighlightAll();
     if (activeCard) closeHelpCard(activeCard.element, activeCard.id);
+
+    // Notify Help Buddy to stop pointing
+    if (window.HelpBuddy && window.HelpBuddy.getState?.() === 'pointing') {
+      // Help Buddy will handle this via its own state
+    }
   }
 
   function updateFabState() {
@@ -601,12 +612,20 @@
       if (!highlightedEls.has(el)) {
         highlightedEls.add(el);
         el.classList.add('help-highlighted');
-        // Add click handler
+        // Add click handler - notify Help Buddy instead of showing card
         el._helpClickHandler = (e) => {
           e.preventDefault();
           e.stopPropagation();
           const id = el.getAttribute('data-help-id');
-          showHelpCard(id, el);
+          // Notify Help Buddy to point and explain
+          if (window.HelpBuddy && window.HelpBuddy.getState?.() !== 'hidden') {
+            window.dispatchEvent(new CustomEvent('helpTargetClick', {
+              detail: { helpId: id, element: el }
+            }));
+          } else {
+            // Fallback to card if buddy not available
+            showHelpCard(id, el);
+          }
         };
         el.addEventListener('click', el._helpClickHandler);
       }

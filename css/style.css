@@ -1973,3 +1973,687 @@ body.tour-open { overflow: hidden; }
   .help-card-footer { padding: 12px 16px; flex-direction: column; align-items: stretch; }
   .help-card-footer .btn { width: 100%; }
 }
+
+/* ============================================================
+   Help Buddy — "صديقك زين" 🧑‍🏫
+   2D Animated Character with personality
+   ============================================================ */
+
+:root {
+  --buddy-skin: #FDBCB4;
+  --buddy-skin-dark: #E8A098;
+  --buddy-hair: #4A3728;
+  --buddy-hair-light: #5D4E37;
+  --buddy-shirt: #0D9488;
+  --buddy-shirt-dark: #0F766E;
+  --buddy-shirt-light: #14B8A6;
+  --buddy-pants: #374151;
+  --buddy-shoe: #1F2937;
+  --buddy-eye-white: #FFFFFF;
+  --buddy-pupil: #1E293B;
+  --buddy-blush: #F472B6;
+  --buddy-mouth: #7C2D12;
+  --buddy-shadow: rgba(15, 23, 42, 0.15);
+  --buddy-bubble: var(--bg-card-solid);
+  --buddy-bubble-text: var(--text);
+  --buddy-z-tour: 500;
+}
+
+.help-buddy {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 160px;
+  height: 220px;
+  z-index: var(--buddy-z-tour);
+  pointer-events: auto;
+  transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+  font-family: var(--font-arabic);
+}
+
+.help-buddy.hidden { opacity: 0; pointer-events: none; transform: translateY(50px) scale(0.8); }
+
+/* Shadow */
+.buddy-shadow {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 70px;
+  height: 12px;
+  background: var(--buddy-shadow);
+  border-radius: 50%;
+  filter: blur(4px);
+  animation: shadowBreathe 3s ease-in-out infinite;
+  z-index: -1;
+}
+@keyframes shadowBreathe {
+  0%, 100% { width: 70px; opacity: 0.15; }
+  50% { width: 60px; opacity: 0.1; }
+}
+
+/* Main Body */
+.buddy-body {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-origin: bottom center;
+  animation: buddyFloat 4s ease-in-out infinite;
+}
+@keyframes buddyFloat {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-3px) rotate(0.5deg); }
+  50% { transform: translateY(-1px) rotate(-0.3deg); }
+  75% { transform: translateY(-2px) rotate(0.2deg); }
+}
+
+/* Head */
+.buddy-head {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 75px;
+  z-index: 10;
+  transform-origin: center bottom;
+}
+
+/* Ears */
+.buddy-ear {
+  position: absolute;
+  top: 18px;
+  width: 14px;
+  height: 18px;
+  background: var(--buddy-skin);
+  border-radius: 50% 50% 40% 40%;
+  z-index: -1;
+}
+.buddy-ear-left { left: -4px; transform: rotate(-15deg); }
+.buddy-ear-right { right: -4px; transform: rotate(15deg); }
+
+/* Face */
+.buddy-face {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: var(--buddy-skin);
+  border-radius: 50% 50% 48% 48%;
+  box-shadow:
+    inset -4px -4px 8px var(--buddy-skin-dark),
+    inset 4px 4px 8px rgba(255,255,255,0.3);
+}
+
+/* Hair */
+.buddy-hair {
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 70px;
+  height: 35px;
+  background: var(--buddy-hair);
+  border-radius: 50% 50% 0 0 / 80% 80% 0 0;
+  z-index: 5;
+}
+.buddy-hair::before {
+  content: '';
+  position: absolute;
+  top: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 15px;
+  background: var(--buddy-hair);
+  border-radius: 50% 50% 0 0;
+}
+
+/* Eyes */
+.buddy-eyes {
+  position: absolute;
+  top: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 24px;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 6px;
+  z-index: 5;
+}
+
+.buddy-eye {
+  position: relative;
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+}
+
+.buddy-eye-white {
+  width: 100%;
+  height: 100%;
+  background: var(--buddy-eye-white);
+  border-radius: 50%;
+  position: relative;
+  overflow: hidden;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.buddy-pupil {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 10px;
+  height: 10px;
+  background: var(--buddy-pupil);
+  border-radius: 50%;
+  transition: transform 0.1s linear;
+  z-index: 2;
+}
+
+.buddy-glint {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 5px;
+  height: 5px;
+  background: white;
+  border-radius: 50%;
+  opacity: 0.9;
+  z-index: 3;
+}
+
+/* Eyelids */
+.buddy-eyelid {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: var(--buddy-skin);
+  border-radius: 0 0 50% 50% / 0 0 100% 100%;
+  transform: scaleY(0);
+  transform-origin: center;
+  transition: transform 0.1s ease-in-out;
+  z-index: 4;
+  pointer-events: none;
+}
+.buddy-eyelid-bottom {
+  top: 50%;
+  border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+  transform-origin: top center;
+}
+
+/* Eyebrows */
+.buddy-eyebrow {
+  position: absolute;
+  top: 14px;
+  width: 20px;
+  height: 3px;
+  background: var(--buddy-hair);
+  border-radius: 2px;
+  z-index: 5;
+  transition: transform 0.3s ease-out;
+}
+.buddy-eyebrow-left { left: 16px; transform: rotate(-5deg); }
+.buddy-eyebrow-right { right: 16px; transform: rotate(5deg); }
+
+/* Mouth */
+.buddy-mouth {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 18px;
+  height: 8px;
+  z-index: 4;
+}
+.buddy-mouth-inner {
+  width: 100%;
+  height: 100%;
+  background: var(--buddy-mouth);
+  border-radius: 0 0 12px 12px;
+  transform-origin: center;
+  transition: transform 0.05s linear;
+}
+
+/* Blush */
+.buddy-blush {
+  position: absolute;
+  bottom: 18px;
+  width: 14px;
+  height: 10px;
+  background: var(--buddy-blush);
+  border-radius: 50%;
+  opacity: 0.5;
+  filter: blur(2px);
+  z-index: 3;
+}
+.buddy-blush-left { left: 6px; }
+.buddy-blush-right { right: 6px; }
+
+/* Torso */
+.buddy-torso {
+  position: absolute;
+  top: 70px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 70px;
+  height: 70px;
+  z-index: 3;
+}
+
+/* Arms */
+.buddy-arm {
+  position: absolute;
+  top: 8px;
+  width: 16px;
+  height: 50px;
+  transform-origin: top center;
+  z-index: 2;
+}
+.buddy-arm-left { left: -8px; transform: rotate(-20deg); }
+.buddy-arm-right { right: -8px; transform: rotate(20deg); }
+
+.buddy-arm::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 16px;
+  height: 35px;
+  background: var(--buddy-skin);
+  border-radius: 8px;
+  box-shadow: inset -2px 0 4px var(--buddy-skin-dark);
+}
+
+.buddy-hand {
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 18px;
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-end;
+  padding-bottom: 2px;
+}
+
+.buddy-finger {
+  width: 3px;
+  height: 10px;
+  background: var(--buddy-skin);
+  border-radius: 2px 2px 0 0;
+  box-shadow: inset -1px 0 2px var(--buddy-skin-dark);
+}
+.buddy-thumb {
+  width: 5px;
+  height: 8px;
+  background: var(--buddy-skin);
+  border-radius: 3px 0 0 3px;
+  transform: rotate(-20deg);
+  margin-left: 2px;
+  box-shadow: inset -1px 0 2px var(--buddy-skin-dark);
+}
+
+/* Outfit */
+.buddy-outfit {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 64px;
+  height: 60px;
+  z-index: 1;
+}
+
+.buddy-collar {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 30px;
+  height: 8px;
+  background: white;
+  border-radius: 0 0 8px 8px;
+  z-index: 2;
+}
+
+.buddy-shirt {
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 56px;
+  height: 50px;
+  background: linear-gradient(135deg, var(--buddy-shirt), var(--buddy-shirt-dark));
+  border-radius: 0 0 16px 16px;
+  box-shadow: inset 0 -4px 8px var(--buddy-shirt-dark);
+}
+
+.buddy-badge {
+  position: absolute;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 18px;
+  height: 18px;
+  background: var(--buddy-shirt-light);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 800;
+  font-family: var(--font-arabic);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  z-index: 3;
+}
+
+/* Legs */
+.buddy-legs {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 50px;
+  height: 20px;
+  z-index: 1;
+}
+
+.buddy-leg {
+  position: absolute;
+  bottom: 0;
+  width: 14px;
+  height: 16px;
+  background: var(--buddy-pants);
+  border-radius: 4px 4px 0 0;
+}
+.buddy-leg-left { left: 8px; }
+.buddy-leg-right { right: 8px; }
+
+.buddy-shoe {
+  position: absolute;
+  bottom: 0;
+  width: 16px;
+  height: 8px;
+  background: var(--buddy-shoe);
+  border-radius: 4px 4px 0 0;
+}
+.buddy-shoe-left { left: 7px; }
+.buddy-shoe-right { right: 7px; }
+
+/* Speech Bubble */
+.buddy-bubble {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-10px) scale(0.9);
+  width: max-content;
+  max-width: 260px;
+  min-width: 160px;
+  background: var(--buddy-bubble);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+  padding: 12px 16px;
+  opacity: 0;
+  visibility: hidden;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s ease-out;
+  z-index: 20;
+  text-align: right;
+  direction: rtl;
+}
+
+.buddy-bubble.visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(-8px) scale(1);
+}
+
+.buddy-bubble-tail {
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0; height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-top: 10px solid var(--border);
+  filter: drop-shadow(0 2px 2px rgba(0,0,0,0.1));
+}
+.buddy-bubble-tail::before {
+  content: '';
+  position: absolute;
+  top: 1px;
+  left: -9px;
+  width: 0; height: 0;
+  border-left: 9px solid transparent;
+  border-right: 9px solid transparent;
+  border-top: 9px solid var(--buddy-bubble);
+}
+
+.buddy-bubble-content {
+  font-size: var(--text-sm);
+  line-height: 1.7;
+  color: var(--buddy-bubble-text);
+  font-family: var(--font-arabic);
+}
+
+.buddy-bubble-avatar {
+  position: absolute;
+  top: -14px;
+  right: -14px;
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(135deg, var(--buddy-shirt), var(--buddy-shirt-dark));
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 800;
+  font-family: var(--font-arabic);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  border: 2px solid var(--buddy-bubble);
+}
+
+/* Hint */
+.buddy-hint {
+  position: absolute;
+  bottom: 100%;
+  right: 0;
+  transform: translateY(-8px);
+  background: var(--buddy-bubble);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 6px 10px;
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  white-space: nowrap;
+  box-shadow: var(--shadow-md);
+  opacity: 0;
+  animation: hintPop 0.5s ease-out forwards;
+  z-index: 15;
+}
+@keyframes hintPop {
+  from { opacity: 0; transform: translateY(0); }
+  to { opacity: 1; transform: translateY(-8px); }
+}
+.buddy-hint kbd {
+  background: var(--primary);
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-family: inherit;
+  margin-left: 4px;
+}
+
+/* Name Label */
+.buddy-name-label {
+  position: absolute;
+  top: -24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--buddy-shirt);
+  color: white;
+  padding: 2px 10px;
+  border-radius: var(--radius-full);
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: var(--shadow-sm);
+  z-index: 5;
+}
+
+/* Pointing Line */
+.buddy-pointing-line {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  pointer-events: none;
+  z-index: 999;
+  overflow: visible;
+}
+
+/* States */
+.help-buddy.talking .buddy-mouth-inner {
+  animation: mouthTalk 0.1s linear infinite;
+}
+@keyframes mouthTalk {
+  0%, 100% { transform: scaleX(1) scaleY(0.3); }
+  25% { transform: scaleX(1.1) scaleY(0.6); }
+  50% { transform: scaleX(0.95) scaleY(0.8); }
+  75% { transform: scaleX(1.05) scaleY(0.5); }
+}
+
+.help-buddy.pointing .buddy-body {
+  animation: none !important;
+}
+
+.help-buddy.celebrating .buddy-body {
+  animation: celebrateJump 0.6s ease-out 3;
+}
+@keyframes celebrateJump {
+  0%, 100% { transform: translateY(0) rotate(0deg) scale(1); }
+  25% { transform: translateY(-20px) rotate(-5deg) scale(1.05); }
+  50% { transform: translateY(-5px) rotate(3deg) scale(1); }
+  75% { transform: translateY(-15px) rotate(-2deg) scale(1.03); }
+}
+
+.help-buddy.celebrating .buddy-arm-left {
+  animation: celebrateArmLeft 0.6s ease-out 3;
+}
+@keyframes celebrateArmLeft {
+  0%, 100% { transform: rotate(-20deg); }
+  50% { transform: rotate(-120deg) translateY(-10px); }
+}
+
+.help-buddy.celebrating .buddy-arm-right {
+  animation: celebrateArmRight 0.6s ease-out 3;
+}
+@keyframes celebrateArmRight {
+  0%, 100% { transform: rotate(20deg); }
+  50% { transform: rotate(120deg) translateY(-10px); }
+}
+
+.help-buddy.celebrating .buddy-head {
+  animation: celebrateHead 0.6s ease-out 3;
+}
+@keyframes celebrateHead {
+  0%, 100% { transform: translateX(-50%) rotate(0deg); }
+  25% { transform: translateX(-50%) rotate(15deg); }
+  75% { transform: translateX(-50%) rotate(-10deg); }
+}
+
+.help-buddy.sleeping .buddy-body {
+  animation: sleepBreathe 3s ease-in-out infinite;
+}
+@keyframes sleepBreathe {
+  0%, 100% { transform: translateY(0) scaleY(1); }
+  50% { transform: translateY(2px) scaleY(1.02); }
+}
+
+.help-buddy.sleeping .buddy-mouth-inner {
+  transform: scaleX(1) scaleY(0.1) !important;
+}
+
+.help-buddy.sleeping .buddy-eyelid-top {
+  transform: scaleY(1) !important;
+}
+.help-buddy.sleeping .buddy-eyelid-bottom {
+  transform: scaleY(1) !important;
+}
+
+.help-buddy.zzz {
+  position: absolute;
+  top: -30px;
+  right: -20px;
+  font-size: 20px;
+  animation: zzzFloat 3s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes zzzFloat {
+  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.7; }
+  50% { transform: translate(-10px, -15px) scale(1.3); opacity: 1; }
+}
+
+/* Celebrate particles */
+.help-buddy.celebrating::after {
+  content: '✨ 🎉 ✨';
+  position: absolute;
+  top: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 20px;
+  animation: celebrateParticles 0.6s ease-out 3;
+  pointer-events: none;
+}
+@keyframes celebrateParticles {
+  0% { opacity: 0; transform: translateX(-50%) translateY(0) scale(0.5); }
+  50% { opacity: 1; transform: translateX(-50%) translateY(-30px) scale(1.2); }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-60px) scale(0.8); }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .help-buddy,
+  .buddy-body,
+  .buddy-head,
+  .buddy-arm,
+  .buddy-shadow,
+  .buddy-bubble,
+  .buddy-hint,
+  .zzz {
+    animation: none !important;
+    transition: none !important;
+  }
+  .help-buddy.talking .buddy-mouth-inner {
+    animation: none;
+  }
+  .help-buddy.celebrating .buddy-body,
+  .help-buddy.celebrating .buddy-arm-left,
+  .help-buddy.celebrating .buddy-arm-right,
+  .help-buddy.celebrating .buddy-head {
+    animation: none;
+  }
+  .help-buddy.sleeping .buddy-body {
+    animation: none;
+  }
+}
+
+/* Mobile Adjustments */
+@media (max-width: 480px) {
+  .help-buddy {
+    bottom: 16px;
+    right: 16px;
+    width: 140px;
+    height: 190px;
+  }
+  .buddy-bubble { max-width: 220px; min-width: 140px; }
+}
