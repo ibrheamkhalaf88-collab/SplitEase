@@ -492,8 +492,8 @@
     buddy.elements.head.style.transition = 'transform 0.5s ease-out';
     buddy.elements.head.style.transform = `rotate(${pointAngle * 0.3}deg)`;
 
-    // Show pointing line
-    showPointingLine(buddyCenterX, buddyCenterY, targetCenterX, targetCenterY, useRight);
+    // Show spotlight (4-band scrim) on target
+    showSpotlight(element);
 
     // Say the pointing line
     const feature = LINES.featureHints[helpId] || { name: 'هذا العنصر', desc: 'ميزة مهمة في التطبيق' };
@@ -519,51 +519,150 @@
     buddy.elements.body.style.transform = 'translateX(0) rotate(0deg)';
     buddy.elements.head.style.transform = 'rotate(0deg)';
 
-    hidePointingLine();
+    hideSpotlight();
     currentTarget = null;
 
     setTimeout(() => setState('idle'), 500);
   }
 
-  /* ── Pointing Line (SVG) ── */
+  /* ── Spotlight System (4-band scrim like tour) ── */
+  let spotlight = null;
+  let spotlightBands = null;
+  let spotlightRing = null;
+
+  function createSpotlight() {
+    if (spotlight) return spotlight;
+
+    spotlight = document.createElement('div');
+    spotlight.className = 'buddy-spotlight';
+    spotlight.hidden = true;
+    spotlight.style.cssText = `
+      position: fixed;
+      inset: 0;
+      z-index: 450;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s ease-out;
+    `;
+
+    // Four bands: top, bottom, left, right
+    const bandNames = ['top', 'bottom', 'left', 'right'];
+    spotlightBands = bandNames.map(name => {
+      const band = document.createElement('div');
+      band.className = `buddy-spotlight-band buddy-spotlight-${name}`;
+      band.style.cssText = `
+        position: absolute;
+        background: rgba(15, 23, 42, 0.55);
+        -webkit-backdrop-filter: blur(4px);
+        backdrop-filter: blur(4px);
+        opacity: 0;
+        transition: opacity 0.3s ease-out, width 0.3s ease-out, height 0.3s ease-out, top 0.3s ease-out, left 0.3s ease-out;
+      `;
+      spotlight.appendChild(band);
+      return band;
+    });
+
+    // Ring around target
+    spotlightRing = document.createElement('div');
+    spotlightRing.className = 'buddy-spotlight-ring';
+    spotlightRing.style.cssText = `
+      position: absolute;
+      border: 3px solid var(--primary);
+      border-radius: var(--radius-lg);
+      box-shadow:
+        0 0 0 4px rgba(13, 148, 136, 0.3),
+        0 0 20px 4px rgba(13, 148, 136, 0.2);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s ease-out, width 0.3s ease-out, height 0.3s ease-out, top 0.3s ease-out, left 0.3s ease-out;
+      animation: buddySpotlightPulse 2s ease-in-out infinite;
+    `;
+    spotlight.appendChild(spotlightRing);
+
+    // Add pulse animation
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes buddySpotlightPulse {
+        0%, 100% { box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.3), 0 0 20px 4px rgba(13, 148, 136, 0.2); }
+        50% { box-shadow: 0 0 0 8px rgba(13, 148, 136, 0.4), 0 0 30px 8px rgba(13, 148, 136, 0.3); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .buddy-spotlight-ring { animation: none; }
+      }
+    `;
+    document.head.appendChild(style);
+
+    document.body.appendChild(spotlight);
+    return spotlight;
+  }
+
+  function showSpotlight(targetEl) {
+    if (!targetEl) return;
+    createSpotlight();
+
+    const rect = targetEl.getBoundingClientRect();
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const pad = 12; // padding around target
+
+    const left = Math.max(0, rect.left - pad);
+    const top = Math.max(0, rect.top - pad);
+    const right = Math.min(vw, rect.right + pad);
+    const bottom = Math.min(vh, rect.bottom + pad);
+    const width = right - left;
+    const height = bottom - top;
+
+    // Position bands
+    const [bandTop, bandBottom, bandLeft, bandRight] = spotlightBands;
+
+    bandTop.style.cssText = `
+      top: 0; left: 0; width: ${vw}px; height: ${top}px;
+      opacity: 1;
+    `;
+    bandBottom.style.cssText = `
+      top: ${bottom}px; left: 0; width: ${vw}px; height: ${vh - bottom}px;
+      opacity: 1;
+    `;
+    bandLeft.style.cssText = `
+      top: ${top}px; left: 0; width: ${left}px; height: ${height}px;
+      opacity: 1;
+    `;
+    bandRight.style.cssText = `
+      top: ${top}px; left: ${right}px; width: ${vw - right}px; height: ${height}px;
+      opacity: 1;
+    `;
+
+    // Position ring
+    spotlightRing.style.cssText = `
+      top: ${top}px;
+      left: ${left}px;
+      width: ${width}px;
+      height: ${height}px;
+      opacity: 1;
+    `;
+
+    spotlight.hidden = false;
+    requestAnimationFrame(() => {
+      spotlight.style.opacity = '1';
+    });
+  }
+
+  function hideSpotlight() {
+    if (!spotlight) return;
+    spotlight.style.opacity = '0';
+    if (spotlightBands) {
+      spotlightBands.forEach(b => b.style.opacity = '0');
+    }
+    if (spotlightRing) spotlightRing.style.opacity = '0';
+    setTimeout(() => {
+      if (spotlight) spotlight.hidden = true;
+    }, 300);
+  }
+
+  /* ── Pointing Line (SVG) - kept for reference but spotlight replaces it ── */
   let pointingLine = null;
   function showPointingLine(x1, y1, x2, y2, useRight) {
-    if (pointingLine) pointingLine.remove();
-
-    pointingLine = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    pointingLine.classList.add('buddy-pointing-line');
-    pointingLine.style.cssText = `
-      position: fixed;
-      top: 0; left: 0; width: 100vw; height: 100vh;
-      pointer-events: none; z-index: 999;
-      overflow: visible;
-    `;
-
-    const midX = (x1 + x2) / 2;
-    const midY = (y1 + y2) / 2;
-    const offset = useRight ? 30 : -30;
-
-    pointingLine.innerHTML = `
-      <defs>
-        <marker id="arrowHead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-          <polygon points="0 0, 10 3.5, 0 7" fill="#0D9488" />
-        </marker>
-      </defs>
-      <path
-        d="M ${x1} ${y1} Q ${midX + offset} ${midY - 40} ${x2} ${y2}"
-        stroke="#0D9488"
-        stroke-width="3"
-        fill="none"
-        marker-end="url(#arrowHead)"
-        stroke-dasharray="8 4"
-        style="animation: dashFlow 1s linear infinite;"
-      />
-      <style>
-        @keyframes dashFlow { to { stroke-dashoffset: -12; } }
-      </style>
-    `;
-
-    document.body.appendChild(pointingLine);
+    // Deprecated - spotlight handles visual guidance
   }
 
   function hidePointingLine() {

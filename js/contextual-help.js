@@ -588,9 +588,9 @@
     unhighlightAll();
     if (activeCard) closeHelpCard(activeCard.element, activeCard.id);
 
-    // Notify Help Buddy to stop pointing
+    // Notify Help Buddy to stop pointing and hide spotlight
     if (window.HelpBuddy && window.HelpBuddy.getState?.() === 'pointing') {
-      // Help Buddy will handle this via its own state
+      window.HelpBuddy.setHelpMode(false);
     }
   }
 
