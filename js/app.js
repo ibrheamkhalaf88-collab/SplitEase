@@ -898,6 +898,15 @@ function renderGroups() {
       <h1>${t('groups')}</h1>
       <button class="btn btn-primary" onclick="showCreateGroup()">+ ${t('create_group')}</button>
     </div>
+    ${supabaseClient ? '' : `
+      <div class="cloud-warning">
+        <div class="cloud-warning-icon">☁️</div>
+        <div class="cloud-warning-text">
+          <strong>السحابة غير مفعّلة:</strong> بيانات مجموعتك محفوظة على هذا الجهاز فقط. 
+          عشان تظهر البيانات لشخصين أو أكثر (الزاج، الأولاد...)، فعّلSupabase من <a href="#settings">الإعدادات</a>.
+        </div>
+      </div>
+    `}
     ${state.groups.length === 0 ? `
       <div class="card">
         <div class="empty-state">
@@ -1089,6 +1098,16 @@ async function renderGroupPage(groupId) {
         <button class="btn btn-accent btn-sm" onclick="showAddExpense('${group.id}')">+ ${t('add_expense')}</button>
       </div>
     </div>
+
+    ${supabaseClient ? '' : `
+      <div class="cloud-warning">
+        <div class="cloud-warning-icon">☁️</div>
+        <div class="cloud-warning-text">
+          <strong>السحابة غير مفعّلة:</strong> المصاريف اللي تسجلها هون محفوظة على جهازك بس. 
+          عشان manželتك أو أولادك يشوفوها ويضيفوا هم두، فعّلSupabase من <a href="#settings">الإعدادات</a>.
+        </div>
+      </div>
+    `}
 
     <div class="stats-grid">
       <div class="stat-card">

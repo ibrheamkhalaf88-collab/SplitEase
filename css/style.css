@@ -1791,6 +1791,37 @@ body.tour-open { overflow: hidden; }
   .tour-card, .tour-band { transition: none; }
 }
 
+/* Cloud warning banner */
+.cloud-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: var(--warning-tint);
+  border: 1px solid var(--warning);
+  color: var(--warning-text);
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  margin-bottom: 16px;
+  font-size: var(--text-sm);
+  line-height: 1.6;
+}
+.cloud-warning-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+.cloud-warning-text strong {
+  color: var(--warning);
+  display: block;
+  margin-bottom: 4px;
+}
+.cloud-warning-text a {
+  color: var(--warning);
+  text-decoration: underline;
+  cursor: pointer;
+  font-weight: 600;
+}
+
 /* ============================================================
    Contextual Help System — "صديقك في SplitEase"
    ============================================================ */
