@@ -260,6 +260,11 @@ const i18n = {
     invite_members: 'دعوة أعضاء',
     share_link: 'مشاركة الرابط',
     copy_link: 'نسخ الرابط',
+    copy_code: 'نسخ الكود',
+    join_by_code: 'انضمام بالكود',
+    enter_invite_code: 'أدخل كود العائلة',
+    join_group_by_code: 'انضمام للمجموعة',
+    invite_code_desc: 'اسأل أباك أو أمك عن كود المجموعة اللي أنتم فيه.',
     total_owes: 'إجمالي المديونية',
     total_owed: 'إجمالي المستحق',
     you_owe: 'عليك',
@@ -1543,17 +1548,77 @@ async function saveSettlement(groupId) {
   navigate(`group/${groupId}`);
 }
 
-function showInviteModal(groupId) {
-  const link = `${window.location.origin}${window.location.pathname}?join=${groupId}`;
+async function showInviteModal(groupId) {
+  let code = null;
+  try {
+    const res = await Cloud.createInvite(groupId);
+    code = res.code;
+  } catch (e) {
+    console.warn('createInvite failed', e);
+  }
+
+  const link = code ? `${window.location.origin}${window.location.pathname}?join=${code}` : `${window.location.origin}${window.location.pathname}?join=${groupId}`;
   showModal(t('invite_members'), `
-    <div class="qr-container">
-      <div class="qr-code" id="qrCode"></div>
-      <div class="qr-link" id="inviteLink">${link}</div>
-      <button class="btn btn-primary" style="margin-top:12px" onclick="copyInviteLink()">${t('copy_link')}</button>
-      <p style="margin-top:12px;font-size:12px;color:var(--text-muted)">${t('share_link')}</p>
+    <div class="invite-card">
+      <div class="invite-code-box">
+        <div class="invite-code-label">كود العائلة (شاركه مع أهل البيت)</div>
+        <div class="invite-code-value" id="inviteCodeDisplay">${code || groupId}</div>
+        <button class="btn btn-ghost btn-sm" onclick="copyInviteCode()" style="margin-top:8px">${t('copy_code')}</button>
+      </div>
+      <div class="qr-container" style="margin-top:16px">
+        <div class="qr-code" id="qrCode"></div>
+        <div class="qr-link" id="inviteLink" style="word-break:break-all">${link}</div>
+        <button class="btn btn-primary" style="margin-top:12px" onclick="copyInviteLink()">${t('copy_link')}</button>
+        <p style="margin-top:8px;font-size:12px;color:var(--text-muted)">${t('share_link')}</p>
+      </div>
     </div>
   `, true);
   generateQR(link);
+}
+
+function copyInviteCode() {
+  const code = document.getElementById('inviteCodeDisplay')?.textContent;
+  if (!code) return;
+  navigator.clipboard?.writeText(code).then(() => {
+    toast('تم نسخ كود العائلة', 'success');
+  }).catch(() => {});
+}
+
+async function renderJoinPage() {
+  document.getElementById('appContent').innerHTML = `
+    <div class="auth-page">
+      <div class="auth-box">
+        <div class="auth-logo">S</div>
+        <h1 class="auth-title">${t('join_group_by_code')}</h1>
+        <p class="auth-subtitle">${t('enter_invite_code')}</p>
+        <div class="auth-form">
+          <div class="form-group">
+            <label class="form-label" for="joinCode">كود العائلة</label>
+            <input class="form-input" id="joinCode" type="text" dir="ltr" placeholder="ABCD1234" maxlength="12" autocapitalize="characters">
+            <div id="joinError" style="color:#EF4444;font-size:13px;margin-bottom:8px;display:none"></div>
+          </div>
+          <button class="btn btn-primary btn-block btn-lg" onclick="joinGroupByCode()">${t('join_group_by_code')}</button>
+          <button class="btn btn-ghost btn-block" style="margin-top:8px" onclick="navigate('groups')">رجوع للمجموعات</button>
+        </div>
+        <p style="margin-top:16px;font-size:12px;color:var(--text-muted)">${t('invite_code_desc') || 'اسأل أباك أو أمك عن كود المجموعة اللي أنتم فيه.'}</p>
+      </div>
+    </div>
+  `;
+}
+
+async function joinGroupByCode() {
+  const code = document.getElementById('joinCode')?.value?.trim();
+  const errEl = document.getElementById('joinError');
+  if (!code) { errEl.textContent = 'اكتب كود الدعوة'; errEl.style.display = 'block'; return; }
+  errEl.style.display = 'none';
+  try {
+    const res = await Cloud.joinGroup(code);
+    toast('تم الانضمام للمجموعة!', 'success');
+    navigate(`group/${res.groupId}`);
+  } catch (e) {
+    errEl.textContent = e.message || 'كود غير صحيح';
+    errEl.style.display = 'block';
+  }
 }
 
 function generateQR(text) {
@@ -1969,8 +2034,21 @@ async function handleRoute() {
   // "join" is treated as a page name and the recipient lands on the dashboard.
   if (hash.startsWith('join=')) {
     const inviteCode = decodeURIComponent(hash.slice(5).split('&')[0]);
-    history.replaceState(null, '', '#cloud');
-    if (window.CloudUI && window.Cloud.enabled) { CloudUI.acceptInvite(inviteCode); return; }
+    history.replaceState(null, '', '#join');
+    try {
+      if (window.CloudUI && window.Cloud.enabled) {
+        await CloudUI.acceptInvite(inviteCode);
+        return;
+      }
+      const res = await Cloud.joinGroup(inviteCode);
+      toast('تم الانضمام للمجموعة!', 'success');
+      navigate(`group/${res.groupId}`);
+      return;
+    } catch (e) {
+      toast(e.message || 'كود غير صحيح', 'error');
+      navigate('join');
+      return;
+    }
   }
 
   const parts = hash.split('/');
@@ -2015,6 +2093,7 @@ async function handleRoute() {
     case 'settings': renderSettings(); break;
     case 'login': renderAuthPage('login'); break;
     case 'register': renderAuthPage('register'); break;
+    case 'join': renderJoinPage(); break;
     case 'add': {
       // PWA shortcut target (manifest.json "مصروف جديد"). An expense belongs to
       // a group, so reuse the group we are already in; otherwise send the user
