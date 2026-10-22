@@ -1279,13 +1279,16 @@ function switchGroupTab(tab, groupId) {
   }).catch(() => {});
 }
 
-async function showAddExpense(groupId) {
+async function showAddExpense(groupId, editId) {
   const group = state.groups.find(g => g.id === groupId);
   if (!group) return;
   const members = group.members || [];
   if (members.length === 0) return;
 
-  showModal(t('add_expense'), `
+  const editing = editId ? await db.get('expenses', editId) : null;
+  window._editingExpense = editing || null;
+
+  showModal(editing ? 'تعديل مصروف' : t('add_expense'), `
     <div class="form-group">
       <label class="form-label" for="eDesc">${t('expense_desc')}</label>
       <input class="form-input" id="eDesc" placeholder="مثال: عشاء">
@@ -1365,10 +1368,48 @@ async function showAddExpense(groupId) {
     </div>
     <button class="btn btn-primary btn-block btn-lg" onclick="saveExpense('${group.id}')">${t('save')}</button>
   `, true);
-  window._splitType = 'equal';
-  window._selectedCategory = 'food';
-  const firstCat = document.querySelector('[data-cat="food"]');
+  window._splitType = editing ? (editing.splitType || 'equal') : 'equal';
+  window._selectedCategory = editing ? (editing.category || 'food') : 'food';
+  const firstCat = document.querySelector(`[data-cat="${window._selectedCategory}"]`);
   if (firstCat) firstCat.classList.add('active');
+  // Pre-fill when editing
+  if (editing) {
+    const descEl = document.getElementById('eDesc');
+    if (descEl) descEl.value = editing.description || '';
+    const amtEl = document.getElementById('eAmount');
+    if (amtEl) amtEl.value = editing.amount || '';
+    const dateEl = document.getElementById('eDate');
+    if (dateEl) dateEl.value = editing.date || today();
+    // payers
+    (editing.paidBy || []).forEach(p => {
+      const inp = document.querySelector(`.payer-input[data-mid="${p.memberId}"]`);
+      if (inp) inp.value = p.amount;
+    });
+    // participants
+    const parts = Array.isArray(editing.participants) ? editing.participants : (editing.shares || []).map(s => s.memberId);
+    document.querySelectorAll('.participant-check').forEach(c => {
+      c.checked = parts.includes(c.dataset.mid);
+    });
+    // split inputs
+    (editing.shares || []).forEach(sh => {
+      const inp = document.querySelector(`.split-input[data-mid="${sh.memberId}"]`);
+      if (inp) inp.value = sh.amount;
+    });
+    // split type button
+    document.querySelectorAll('.split-type-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector(`[data-split="${window._splitType}"]`)?.classList.add('active');
+    // disable inputs if equal
+    if (window._splitType === 'equal') {
+      document.querySelectorAll('.split-input').forEach(inp => { inp.disabled = true; });
+    }
+    // category custom
+    const customInput = document.getElementById('eCategoryCustom');
+    if (customInput && window._selectedCategory === 'custom') customInput.style.display = 'block';
+    // select category button
+    document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector(`[data-cat="${window._selectedCategory}"]`)?.classList.add('active');
+    updatePayersTotal();
+  }
 }
 
 function selectCategory(id) {
@@ -1514,13 +1555,16 @@ async function saveExpense(groupId) {
   const activeMembers = members.filter(m => checkedIds.includes(m.id));
   const shares = calcShares(amount, type, activeMembers, values);
 
+  const editing = window._editingExpense;
   const expense = {
-    id: uid(), groupId, description: desc, amount, category, date, paidBy,
-    splitType: type, shares, participants: checkedIds, createdAt: new Date().toISOString()
+    id: editing ? editing.id : uid(),
+    groupId, description: desc, amount, category, date, paidBy,
+    splitType: type, shares, participants: checkedIds, createdAt: editing ? editing.createdAt : new Date().toISOString()
   };
   await db.put('expenses', expense);
+  window._editingExpense = null;
   closeModal();
-  toast(t('expense_added'), 'success');
+  toast(editing ? 'تم تحديث المصروف' : t('expense_added'), 'success');
   navigate(`group/${groupId}`);
 }
 
@@ -1569,7 +1613,10 @@ async function showExpenseDetail(groupId, expenseId) {
     <div style="display:flex;gap:8px;margin-bottom:16px">
       <button class="btn btn-ghost btn-block" onclick="showEditParticipants('${groupId}','${expense.id}')">تعديل المشاركين (استثناء من لم يشارك)</button>
     </div>
-    <button class="btn btn-danger btn-block" onclick="deleteExpense('${groupId}','${expense.id}')">${t('delete')}</button>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-primary btn-block" onclick="showAddExpense('${groupId}','${expense.id}')">✏️ تعديل</button>
+      <button class="btn btn-danger btn-block" onclick="deleteExpense('${groupId}','${expense.id}')">${t('delete')}</button>
+    </div>
   `, true);
 }
 
@@ -1642,6 +1689,12 @@ function showSettleModal(groupId) {
       const members = group.members || [];
       showModal(t('settle'), `
         <div class="form-group">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-bottom:12px">
+            <input type="checkbox" id="settleFromBalance" onchange="toggleSettleMode()">
+            <span>حساب من الرصيد (بدون تحديد الدافع) — يُخصم من رصيد العضو</span>
+          </label>
+        </div>
+        <div class="form-group" id="settleFromGroup">
           <label class="form-label" for="sFrom">${t('paid_by')}</label>
           <select class="form-select" id="sFrom">
             ${members.map(m => `<option value="${m.id}">${esc(m.name)}</option>`).join('')}
@@ -1650,7 +1703,7 @@ function showSettleModal(groupId) {
         <div class="form-group">
           <label class="form-label" for="sTo">${t('owes')}</label>
           <select class="form-select" id="sTo">
-            ${members.filter(m => (balances[m.id] || 0) > 0.01).map(m => `<option value="${m.id}">${esc(m.name)} (${fmt(balances[m.id], group.currency)})</option>`).join('')}
+            ${members.map(m => `<option value="${m.id}">${esc(m.name)} (${fmt(balances[m.id] || 0, group.currency)})</option>`).join('')}
           </select>
         </div>
         <div class="form-group">
@@ -1668,17 +1721,29 @@ function showSettleModal(groupId) {
         </div>
         <button class="btn btn-primary btn-block btn-lg" onclick="saveSettlement('${group.id}')">${t('settle')}</button>
       `, true);
+      window._settleBalances = balances;
     }).catch(() => {});
   }).catch(() => {});
 }
 
+function toggleSettleMode() {
+  const cb = document.getElementById('settleFromBalance');
+  const fromGroup = document.getElementById('settleFromGroup');
+  if (!cb || !fromGroup) return;
+  fromGroup.style.display = cb.checked ? 'none' : 'block';
+}
+
 async function saveSettlement(groupId) {
-  const from = document.getElementById('sFrom').value;
+  const fromSel = document.getElementById('sFrom');
+  const cb = document.getElementById('settleFromBalance');
+  const fromBalance = cb && cb.checked;
+  const from = fromBalance ? '' : (fromSel ? fromSel.value : '');
   const to = document.getElementById('sTo').value;
   const amount = parseFloat(document.getElementById('sAmount').value);
   const method = document.getElementById('sMethod').value;
-  if (!amount || amount <= 0 || !from || !to) { toast('يرجى إدخال بيانات صحيحة', 'error'); return; }
-  const settlement = { id: uid(), groupId, from, to, amount, method, status: 'paid', date: today() };
+  if (!amount || amount <= 0 || !to) { toast('يرجى إدخال بيانات صحيحة', 'error'); return; }
+  if (!fromBalance && !from) { toast('يرجى تحديد من دفع', 'error'); return; }
+  const settlement = { id: uid(), groupId, from, to, amount, method, status: 'paid', date: today(), fromBalance: fromBalance };
   await db.put('settlements', settlement);
   closeModal();
   toast(t('settlement_marked'), 'success');
@@ -2298,6 +2363,7 @@ function closeModal() {
   if (modalReturnFocus && document.contains(modalReturnFocus)) {
     modalReturnFocus.focus({ preventScroll: true });
   }
+  window._editingExpense = null;
   modalReturnFocus = null;
 }
 
@@ -2752,5 +2818,6 @@ window.useLocalMode = useLocalMode;
 window.showAddPersonal = showAddPersonal;
 window.selectPersonalCat = selectPersonalCat;
 window.savePersonal = savePersonal;
+window.toggleSettleMode = toggleSettleMode;
 window.deletePersonal = deletePersonal;
 })();
