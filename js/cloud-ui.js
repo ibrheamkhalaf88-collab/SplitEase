@@ -106,13 +106,6 @@
       if (pass.length < 6) { err.textContent = 'كلمة المرور 6 أحرف على الأقل'; err.style.display = 'block'; return; }
       const { error } = await Cloud.sb.auth.signUp({ email, password: pass });
       if (error) { err.textContent = error.message; err.style.display = 'block'; return; }
-      // If email confirmation is required, no session yet → ask for OTP code
-      const { data } = await Cloud.sb.auth.getSession();
-      if (!data.session) {
-        if (window.showVerifyEmailModal) { window.showVerifyEmailModal(email, 'cloud'); }
-        else { err.textContent = 'تم إنشاء الحساب — تحقق من بريدك (رمز 6 أرقام) ثم سجّل دخول'; err.style.display = 'block'; err.style.color = 'var(--positive)'; }
-        return;
-      }
       await Cloud.upsertMyProfile();
       location.hash = 'cloud';
     },

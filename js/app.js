@@ -163,56 +163,9 @@ async function authRegister() {
   try {
     const { data, error } = await supabaseClient.auth.signUp({ email, password, options: { data: { full_name: name } } });
     if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; return; }
-    // If email confirmation is required, no session yet → ask for OTP code
-    const { data: sess } = await supabaseClient.auth.getSession();
-    if (!sess?.session) {
-      showVerifyEmailModal(email);
-      return;
-    }
     toast('تم التسجيل بنجاح!', 'success');
     navigate('home');
   } catch(e) { errEl.textContent = 'حدث خطأ في الاتصال'; errEl.style.display = 'block'; }
-}
-
-function showVerifyEmailModal(email, nextRoute) {
-  window._verifyNextRoute = nextRoute || 'home';
-  showModal('تأكيد البريد الإلكتروني', `
-    <div style="text-align:center;margin-bottom:16px">
-      <div style="font-size:48px;margin-bottom:8px">📧</div>
-      <p style="color:var(--text-muted)">أرسلنا رمز تحقق مكوّن من 6 أرقام إلى<br><strong dir="ltr">${esc(email)}</strong></p>
-      <p style="color:var(--text-muted);font-size:13px;margin-top:4px">أدخل الرمز أدناه لإكمال التسجيل (صلاحية 10 دقائق)</p>
-    </div>
-    <div class="form-group">
-      <label class="form-label" for="verifyCode">رمز التحقق</label>
-      <input class="form-input" id="verifyCode" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="000000" dir="ltr" style="text-align:center;font-size:24px;letter-spacing:8px;font-weight:700">
-    </div>
-    <div id="verifyError" style="color:#EF4444;font-size:13px;margin-bottom:8px;display:none"></div>
-    <button class="btn btn-primary btn-block btn-lg" data-email="${esc(email)}" onclick="verifyAuthCode(this.dataset.email)">تأكيد</button>
-    <button class="btn btn-ghost btn-block" style="margin-top:8px" data-email="${esc(email)}" onclick="resendVerifyCode(this.dataset.email)">إعادة إرسال الرمز</button>
-  `, true);
-  window._verifyEmail = email;
-}
-
-async function verifyAuthCode(email) {
-  const code = document.getElementById('verifyCode')?.value?.trim();
-  const errEl = document.getElementById('verifyError');
-  if (!code || code.length < 6) { errEl.textContent = 'يرجى إدخال الرمز (6 أرقام)'; errEl.style.display = 'block'; return; }
-  errEl.style.display = 'none';
-  try {
-    const { data, error } = await supabaseClient.auth.verifyOtp({ email, token: code, type: 'signup' });
-    if (error) { errEl.textContent = error.message || 'رمز غير صحيح أو منتهي'; errEl.style.display = 'block'; return; }
-    toast('تم تأكيد البريد بنجاح! 🎉', 'success');
-    closeModal();
-    navigate(window._verifyNextRoute || 'home');
-  } catch(e) { errEl.textContent = 'حدث خطأ في الاتصال'; errEl.style.display = 'block'; }
-}
-
-async function resendVerifyCode(email) {
-  try {
-    const { error } = await supabaseClient.auth.resend({ type: 'signup', email });
-    if (error) { toast(error.message || 'تعذّر إعادة الإرسال', 'error'); return; }
-    toast('تم إعادة إرسال الرمز', 'success');
-  } catch(e) { toast('حدث خطأ في الاتصال', 'error'); }
 }
 
 async function authLogin() {
@@ -2799,8 +2752,5 @@ window.useLocalMode = useLocalMode;
 window.showAddPersonal = showAddPersonal;
 window.selectPersonalCat = selectPersonalCat;
 window.savePersonal = savePersonal;
-window.verifyAuthCode = verifyAuthCode;
-window.resendVerifyCode = resendVerifyCode;
-window.showVerifyEmailModal = showVerifyEmailModal;
 window.deletePersonal = deletePersonal;
 })();
