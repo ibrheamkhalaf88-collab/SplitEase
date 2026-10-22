@@ -1546,7 +1546,7 @@ async function saveExpense(groupId) {
     const val = parseFloat(inp.value) || 0;
     if (val > 0) paidBy.push({ memberId: inp.dataset.mid, amount: val });
   });
-  if (paidBy.length === 0) { toast('يرجى تحديد من دفع', 'error'); return; }
+  // من دفع اختياري — إذا لم يُحدد، بس نسجل الحصص (قديش على كل واحد)
 
   const values = {};
   document.querySelectorAll('.split-input').forEach(inp => {
@@ -1579,7 +1579,7 @@ async function showExpenseDetail(groupId, expenseId) {
     <div style="text-align:center;padding:16px 0">
       <div style="font-size:40px;margin-bottom:8px">${categoryIcon(expense.category)}</div>
       <div style="font-size:28px;font-weight:700">${fmt(expense.amount, group?.currency)}</div>
-      <div style="color:var(--text-muted);margin-top:4px">${esc(expense.date)} · دفع: ${payerNames}</div>
+      <div style="color:var(--text-muted);margin-top:4px">${esc(expense.date)} · دفع: ${payerNames || 'لم يُحدد (رصيد)'}</div>
       ${Array.isArray(expense.participants) ? `<div style="color:var(--text-muted);margin-top:4px;font-size:12px">المشاركون: ${expense.participants.map(id => esc(members.find(m=>m.id===id)?.name || '')).join('، ')}</div>` : ''}
     </div>
     <div class="card" style="margin-bottom:12px">
