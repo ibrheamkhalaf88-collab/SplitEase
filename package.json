@@ -8,8 +8,12 @@
     "test": "node --test",
     "check": "node --check js/app.js && node --check js/cloud.js && node --check js/cloud-ui.js && node --check js/onboarding.js && node --check sw.js",
     "icons": "node scripts/generate-icons.mjs",
+    "supabase:link": "supabase link --project-ref fvwtlexvuepvrkuvvgbv",
     "db:push": "supabase db push",
-    "db:reset": "supabase db reset"
+    "db:list": "supabase migration list",
+    "db:reset": "supabase db reset",
+    "fn:deploy": "supabase functions deploy",
+    "secrets:list": "supabase secrets list"
   },
   "engines": {
     "node": ">=20"

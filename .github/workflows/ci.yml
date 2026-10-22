@@ -21,14 +21,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
 
       - name: Run tests
-        run: node --test
-        working-directory: ./SplitEase
+        run: npm test
 
       - name: Lint JS syntax
         run: |
-          for f in SplitEase/js/*.js SplitEase/sw.js SplitEase/scripts/*.mjs; do
+          for f in js/*.js sw.js scripts/*.mjs; do
             node --check "$f" || exit 1
           done

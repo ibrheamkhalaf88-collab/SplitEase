@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { WebPush } from "https://deno.land/x/web_push@0.2.0/mod.ts";
+import webpush from "npm:web-push@3.6.7";
 
 // CORS headers
 const corsHeaders = {
@@ -34,10 +34,19 @@ serve(async (req) => {
     const vapidPrivateKey = Deno.env.get("VAPID_PRIVATE_KEY")!;
     const vapidSubject = Deno.env.get("VAPID_SUBJECT") || "mailto:admin@splitease.app";
 
-    const webPush = new WebPush(vapidPublicKey, vapidPrivateKey, vapidSubject);
+    if (!vapidPublicKey || !vapidPrivateKey) {
+      return new Response(
+        JSON.stringify({ error: "VAPID keys not configured" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
-    // Get push subscriptions for target users
-    let query = supabase.from("push_subscriptions").select("subscription");
+    webpush.setVapidDetails(vapidSubject, vapidPublicKey, vapidPrivateKey);
+
+    // Get push subscriptions for target users.
+    // NOTE: the table stores the subscription split across columns
+    // (endpoint / p256dh / auth) — there is no `subscription` jsonb column.
+    let query = supabase.from("push_subscriptions").select("endpoint, p256dh, auth");
     if (userIds && userIds.length > 0) {
       query = query.in("user_id", userIds);
     }
@@ -50,12 +59,15 @@ serve(async (req) => {
     const results = await Promise.allSettled(
       (subscriptions || []).map(async (row) => {
         try {
-          await webPush.sendNotification(row.subscription, payload);
+          await webpush.sendNotification(
+            { endpoint: row.endpoint, keys: { p256dh: row.p256dh, auth: row.auth } },
+            payload
+          );
           return { success: true };
         } catch (e: any) {
           // If subscription expired/invalid, delete it
           if (e.statusCode === 410 || e.statusCode === 404) {
-            await supabase.from("push_subscriptions").delete().eq("endpoint", row.subscription.endpoint);
+            await supabase.from("push_subscriptions").delete().eq("endpoint", row.endpoint);
           }
           return { success: false, error: e.message };
         }

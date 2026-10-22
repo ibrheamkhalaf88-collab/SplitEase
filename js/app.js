@@ -163,8 +163,56 @@ async function authRegister() {
   try {
     const { data, error } = await supabaseClient.auth.signUp({ email, password, options: { data: { full_name: name } } });
     if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; return; }
-    toast('تم التسجيل! تحقق من بريدك الإلكتروني', 'success');
+    // If email confirmation is required, no session yet → ask for OTP code
+    const { data: sess } = await supabaseClient.auth.getSession();
+    if (!sess?.session) {
+      showVerifyEmailModal(email);
+      return;
+    }
+    toast('تم التسجيل بنجاح!', 'success');
+    navigate('home');
   } catch(e) { errEl.textContent = 'حدث خطأ في الاتصال'; errEl.style.display = 'block'; }
+}
+
+function showVerifyEmailModal(email, nextRoute) {
+  window._verifyNextRoute = nextRoute || 'home';
+  showModal('تأكيد البريد الإلكتروني', `
+    <div style="text-align:center;margin-bottom:16px">
+      <div style="font-size:48px;margin-bottom:8px">📧</div>
+      <p style="color:var(--text-muted)">أرسلنا رمز تحقق مكوّن من 6 أرقام إلى<br><strong dir="ltr">${esc(email)}</strong></p>
+      <p style="color:var(--text-muted);font-size:13px;margin-top:4px">أدخل الرمز أدناه لإكمال التسجيل (صلاحية 10 دقائق)</p>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="verifyCode">رمز التحقق</label>
+      <input class="form-input" id="verifyCode" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="000000" dir="ltr" style="text-align:center;font-size:24px;letter-spacing:8px;font-weight:700">
+    </div>
+    <div id="verifyError" style="color:#EF4444;font-size:13px;margin-bottom:8px;display:none"></div>
+    <button class="btn btn-primary btn-block btn-lg" data-email="${esc(email)}" onclick="verifyAuthCode(this.dataset.email)">تأكيد</button>
+    <button class="btn btn-ghost btn-block" style="margin-top:8px" data-email="${esc(email)}" onclick="resendVerifyCode(this.dataset.email)">إعادة إرسال الرمز</button>
+  `, true);
+  window._verifyEmail = email;
+}
+
+async function verifyAuthCode(email) {
+  const code = document.getElementById('verifyCode')?.value?.trim();
+  const errEl = document.getElementById('verifyError');
+  if (!code || code.length < 6) { errEl.textContent = 'يرجى إدخال الرمز (6 أرقام)'; errEl.style.display = 'block'; return; }
+  errEl.style.display = 'none';
+  try {
+    const { data, error } = await supabaseClient.auth.verifyOtp({ email, token: code, type: 'signup' });
+    if (error) { errEl.textContent = error.message || 'رمز غير صحيح أو منتهي'; errEl.style.display = 'block'; return; }
+    toast('تم تأكيد البريد بنجاح! 🎉', 'success');
+    closeModal();
+    navigate(window._verifyNextRoute || 'home');
+  } catch(e) { errEl.textContent = 'حدث خطأ في الاتصال'; errEl.style.display = 'block'; }
+}
+
+async function resendVerifyCode(email) {
+  try {
+    const { error } = await supabaseClient.auth.resend({ type: 'signup', email });
+    if (error) { toast(error.message || 'تعذّر إعادة الإرسال', 'error'); return; }
+    toast('تم إعادة إرسال الرمز', 'success');
+  } catch(e) { toast('حدث خطأ في الاتصال', 'error'); }
 }
 
 async function authLogin() {
@@ -425,7 +473,7 @@ const CURRENCY_SYMBOLS = { EGP:'ج.م', USD:'$', EUR:'€', SAR:'﷼', AED:'د.�
 function getPayersDisplay(payers, members, cur) {
   if (!Array.isArray(payers)) {
     const m = members?.find(x => x.id === payers);
-    return m?.name || '';
+    return m ? esc(m.name) : '';
   }
   return payers.map(p => {
     const m = members?.find(x => x.id === p.memberId);
@@ -931,13 +979,13 @@ function renderGroups() {
 function renderGroupCard(g) {
   return `
     <div class="group-card" onclick="location.hash='#group/${g.id}'">
-      <div class="group-icon" style="background:${g.color}22;font-size:28px">${g.icon || '👥'}</div>
+      <div class="group-icon" style="background:${/^#[0-9a-fA-F]{3,8}$/.test(g.color||'') ? g.color : '#0D9488'}22;font-size:28px">${esc(g.icon || '👥')}</div>
       <h3>${esc(g.name)}</h3>
       <div class="group-meta">${g.members?.length || 0} ${t('members')} · ${g.currency || state.currency}</div>
       <div class="group-balance ${(g.balance || 0) >= 0 ? 'positive' : 'negative'}">${fmt(g.balance || 0)}</div>
       <div class="group-members">
         ${(g.members || []).slice(0, 5).map((m, i) => `
-          <div class="member-avatar" style="background:${GROUP_COLORS[i % GROUP_COLORS.length]}">${m.name.charAt(0)}</div>
+          <div class="member-avatar" style="background:${GROUP_COLORS[i % GROUP_COLORS.length]}">${esc(String(m.name || '').charAt(0))}</div>
         `).join('')}
         ${(g.members?.length || 0) > 5 ? `<div class="member-avatar more">+${g.members.length - 5}</div>` : ''}
       </div>
@@ -1348,11 +1396,15 @@ async function showAddExpense(groupId) {
       </div>
     </div>
     <div class="member-split" id="memberSplit">
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px">من شارك في هذا المصروف؟ (ألغِ تحديد من لم يشارك — مثلاً النائم)</div>
       ${members.map(m => {
         const val = m._val || '';
         return `
-          <div class="member-split-item">
-            <span class="member-name">${esc(m.name)}</span>
+          <div class="member-split-item" data-mid="${m.id}">
+            <label style="display:flex;align-items:center;gap:8px;flex:1;cursor:pointer">
+              <input type="checkbox" class="participant-check" data-mid="${m.id}" checked onchange="toggleParticipant('${m.id}')">
+              <span class="member-name">${esc(m.name)}</span>
+            </label>
             <input class="form-input split-input" type="number" step="0.01" min="0" data-mid="${m.id}" value="${val}" placeholder="0">
           </div>
         `;
@@ -1374,6 +1426,47 @@ function selectCategory(id) {
   if (customInput) customInput.style.display = id === 'custom' ? 'block' : 'none';
 }
 
+function getCheckedParticipants() {
+  const checks = document.querySelectorAll('.participant-check');
+  const ids = [];
+  checks.forEach(c => { if (c.checked) ids.push(c.dataset.mid); });
+  return ids;
+}
+
+function toggleParticipant(mid) {
+  const check = document.querySelector(`.participant-check[data-mid="${mid}"]`);
+  const input = document.querySelector(`.split-input[data-mid="${mid}"]`);
+  if (!check || !input) return;
+  if (check.checked) {
+    input.disabled = false;
+    const container = document.getElementById('memberSplit');
+    const type = window._splitType;
+    if (type === 'equal') {
+      const amt = parseFloat(document.getElementById('eAmount')?.value) || 0;
+      const n = getCheckedParticipants().length;
+      const per = n > 0 ? Math.round((amt / n) * 100) / 100 : 0;
+      document.querySelectorAll('.split-input').forEach(inp => {
+        const c = document.querySelector(`.participant-check[data-mid="${inp.dataset.mid}"]`);
+        if (c && c.checked) inp.value = per;
+      });
+    }
+  } else {
+    input.value = '';
+    input.disabled = true;
+    // recompute equal split among remaining
+    const type = window._splitType;
+    if (type === 'equal') {
+      const amt = parseFloat(document.getElementById('eAmount')?.value) || 0;
+      const n = getCheckedParticipants().length;
+      const per = n > 0 ? Math.round((amt / n) * 100) / 100 : 0;
+      document.querySelectorAll('.split-input').forEach(inp => {
+        const c = document.querySelector(`.participant-check[data-mid="${inp.dataset.mid}"]`);
+        if (c && c.checked) inp.value = per;
+      });
+    }
+  }
+}
+
 function selectSplit(type) {
   window._splitType = type;
   document.querySelectorAll('.split-type-btn').forEach(b => b.classList.remove('active'));
@@ -1382,13 +1475,22 @@ function selectSplit(type) {
   if (!container) return;
   const inputs = container.querySelectorAll('.split-input');
   const amt = parseFloat(document.getElementById('eAmount')?.value) || 0;
-  const n = inputs.length;
+  const checked = getCheckedParticipants();
+  const n = checked.length;
 
   if (type === 'equal') {
     const per = n > 0 ? Math.round((amt / n) * 100) / 100 : 0;
-    inputs.forEach(inp => { inp.value = per; inp.disabled = true; });
+    inputs.forEach(inp => {
+      const c = document.querySelector(`.participant-check[data-mid="${inp.dataset.mid}"]`);
+      if (c && c.checked) { inp.value = per; inp.disabled = true; }
+      else { inp.value = ''; inp.disabled = true; }
+    });
   } else {
-    inputs.forEach(inp => { inp.disabled = false; if (!inp.value) inp.value = '0'; });
+    inputs.forEach(inp => {
+      const c = document.querySelector(`.participant-check[data-mid="${inp.dataset.mid}"]`);
+      if (c && c.checked) { inp.disabled = false; if (!inp.value) inp.value = '0'; }
+      else { inp.value = ''; inp.disabled = true; }
+    });
   }
 }
 
@@ -1413,8 +1515,12 @@ document.addEventListener('input', function(e) {
     if (type === 'equal') {
       const inputs = document.querySelectorAll('.split-input');
       const amt = parseFloat(e.target.value) || 0;
-      const per = inputs.length > 0 ? Math.round((amt / inputs.length) * 100) / 100 : 0;
-      inputs.forEach(inp => { inp.value = per; });
+      const n = getCheckedParticipants().length;
+      const per = n > 0 ? Math.round((amt / n) * 100) / 100 : 0;
+      inputs.forEach(inp => {
+        const c = document.querySelector(`.participant-check[data-mid="${inp.dataset.mid}"]`);
+        if (c && c.checked) inp.value = per;
+      });
     }
     updatePayersTotal();
   }
@@ -1438,6 +1544,9 @@ async function saveExpense(groupId) {
   const members = group?.members || [];
   const type = window._splitType || 'equal';
 
+  const checkedIds = getCheckedParticipants();
+  if (checkedIds.length === 0) { toast('يرجى تحديد من شارك في هذا المصروف', 'error'); return; }
+
   const paidBy = [];
   document.querySelectorAll('.payer-input').forEach(inp => {
     const val = parseFloat(inp.value) || 0;
@@ -1449,11 +1558,12 @@ async function saveExpense(groupId) {
   document.querySelectorAll('.split-input').forEach(inp => {
     values[inp.dataset.mid] = parseFloat(inp.value) || 0;
   });
-  const shares = calcShares(amount, type, members, values);
+  const activeMembers = members.filter(m => checkedIds.includes(m.id));
+  const shares = calcShares(amount, type, activeMembers, values);
 
   const expense = {
     id: uid(), groupId, description: desc, amount, category, date, paidBy,
-    splitType: type, shares, createdAt: new Date().toISOString()
+    splitType: type, shares, participants: checkedIds, createdAt: new Date().toISOString()
   };
   await db.put('expenses', expense);
   closeModal();
@@ -1472,7 +1582,8 @@ async function showExpenseDetail(groupId, expenseId) {
     <div style="text-align:center;padding:16px 0">
       <div style="font-size:40px;margin-bottom:8px">${categoryIcon(expense.category)}</div>
       <div style="font-size:28px;font-weight:700">${fmt(expense.amount, group?.currency)}</div>
-      <div style="color:var(--text-muted);margin-top:4px">${expense.date} · دفع: ${payerNames}</div>
+      <div style="color:var(--text-muted);margin-top:4px">${esc(expense.date)} · دفع: ${payerNames}</div>
+      ${Array.isArray(expense.participants) ? `<div style="color:var(--text-muted);margin-top:4px;font-size:12px">المشاركون: ${expense.participants.map(id => esc(members.find(m=>m.id===id)?.name || '')).join('، ')}</div>` : ''}
     </div>
     <div class="card" style="margin-bottom:12px">
       <div class="card-header"><h2>من دفع</h2></div>
@@ -1502,8 +1613,62 @@ async function showExpenseDetail(groupId, expenseId) {
         <span class="balance-amount">${fmt(expense.amount, group?.currency)}</span>
       </div>
     </div>
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <button class="btn btn-ghost btn-block" onclick="showEditParticipants('${groupId}','${expense.id}')">تعديل المشاركين (استثناء من لم يشارك)</button>
+    </div>
     <button class="btn btn-danger btn-block" onclick="deleteExpense('${groupId}','${expense.id}')">${t('delete')}</button>
   `, true);
+}
+
+async function showEditParticipants(groupId, expenseId) {
+  const expense = await db.get('expenses', expenseId);
+  if (!expense) return;
+  const group = state.groups.find(g => g.id === groupId);
+  if (!group) return;
+  const members = group.members || [];
+  const currentParticipants = Array.isArray(expense.participants)
+    ? expense.participants
+    : (expense.shares || []).map(s => s.memberId);
+
+  showModal('تعديل المشاركين', `
+    <p style="color:var(--text-muted);font-size:13px;margin-bottom:12px">ألغِ تحديد من لم يشارك (مثلاً النائم) → بعدها بعده بس بين الموجودين.</p>
+    <div class="member-split" id="editParticipants">
+      ${members.map(m => `
+        <div class="member-split-item">
+          <label style="display:flex;align-items:center;gap:8px;flex:1;cursor:pointer">
+            <input type="checkbox" class="edit-part-check" data-mid="${m.id}" ${currentParticipants.includes(m.id) ? 'checked' : ''}>
+            <span class="member-name">${esc(m.name)}</span>
+          </label>
+        </div>
+      `).join('')}
+    </div>
+    <button class="btn btn-primary btn-block btn-lg" onclick="saveEditParticipants('${groupId}','${expenseId}')">حفظ</button>
+  `, true);
+  window._editExpenseId = expenseId;
+  window._editGroupId = groupId;
+}
+
+async function saveEditParticipants(groupId, expenseId) {
+  const expense = await db.get('expenses', expenseId);
+  if (!expense) return;
+  const group = state.groups.find(g => g.id === groupId);
+  if (!group) return;
+  const members = group.members || [];
+  const checkedIds = Array.from(document.querySelectorAll('.edit-part-check'))
+    .filter(c => c.checked).map(c => c.dataset.mid);
+  if (checkedIds.length === 0) { toast('يرجى تحديد من شارك', 'error'); return; }
+
+  const activeMembers = members.filter(m => checkedIds.includes(m.id));
+  const values = {};
+  (expense.shares || []).forEach(sh => { values[sh.memberId] = sh.amount; });
+  const newShares = calcShares(expense.amount, expense.splitType, activeMembers, values);
+
+  expense.participants = checkedIds;
+  expense.shares = newShares;
+  await db.put('expenses', expense);
+  closeModal();
+  toast('تم تحديث المشاركين', 'success');
+  navigate(`group/${groupId}`);
 }
 
 async function deleteExpense(groupId, expenseId) {
@@ -2603,6 +2768,8 @@ window.selectCategory = selectCategory;
 window.selectSplit = selectSplit;
 window.saveExpense = saveExpense;
 window.showExpenseDetail = showExpenseDetail;
+window.showEditParticipants = showEditParticipants;
+window.saveEditParticipants = saveEditParticipants;
 window.deleteExpense = deleteExpense;
 window.showSettleModal = showSettleModal;
 window.saveSettlement = saveSettlement;
@@ -2632,5 +2799,8 @@ window.useLocalMode = useLocalMode;
 window.showAddPersonal = showAddPersonal;
 window.selectPersonalCat = selectPersonalCat;
 window.savePersonal = savePersonal;
+window.verifyAuthCode = verifyAuthCode;
+window.resendVerifyCode = resendVerifyCode;
+window.showVerifyEmailModal = showVerifyEmailModal;
 window.deletePersonal = deletePersonal;
 })();

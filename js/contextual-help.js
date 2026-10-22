@@ -553,9 +553,7 @@
     updateFabState();
 
     // Notify Help Buddy
-    if (window.HelpBuddy) {
-      window.HelpBuddy.setHelpMode(helpMode);
-    }
+    // (personality removed) — help cards shown directly now
 
     if (helpMode) enterHelpMode();
     else exitHelpMode();
@@ -573,7 +571,7 @@
     highlightHelpableElements();
 
     // Show welcome toast
-    if (window.toast) window.toast('💡 وضع الشرح مفعل — زين هيريحك ويشرحلك كل شي! اضغط أي عنصر مضيء 🧡', 'info');
+    if (window.toast) window.toast('💡 وضع الشرح مفعل — اضغط أي عنصر مضيء لشرحه 🧡', 'info');
   }
 
   function exitHelpMode() {
@@ -589,9 +587,7 @@
     if (activeCard) closeHelpCard(activeCard.element, activeCard.id);
 
     // Notify Help Buddy to stop pointing and hide spotlight
-    if (window.HelpBuddy && window.HelpBuddy.getState?.() === 'pointing') {
-      window.HelpBuddy.setHelpMode(false);
-    }
+    // (personality removed) — nothing to notify
   }
 
   function updateFabState() {
@@ -617,15 +613,8 @@
           e.preventDefault();
           e.stopPropagation();
           const id = el.getAttribute('data-help-id');
-          // Notify Help Buddy to point and explain
-          if (window.HelpBuddy && window.HelpBuddy.getState?.() !== 'hidden') {
-            window.dispatchEvent(new CustomEvent('helpTargetClick', {
-              detail: { helpId: id, element: el }
-            }));
-          } else {
-            // Fallback to card if buddy not available
-            showHelpCard(id, el);
-          }
+          // Show help card directly (personality removed)
+          showHelpCard(id, el);
         };
         el.addEventListener('click', el._helpClickHandler);
       }

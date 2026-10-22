@@ -5,7 +5,7 @@
    (IndexedDB), so we precache the whole shell.
    Push notifications via Web Push API (VAPID).
    ============================================================ */
-const CACHE_NAME = 'splitease-v9';
+const CACHE_NAME = 'splitease-v11';
 
 /* VAPID public key — base64url encoded, no padding.
    Generate with: npx web-push generate-vapid-keys
